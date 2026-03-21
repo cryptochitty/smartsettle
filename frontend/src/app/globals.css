@@ -1,0 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #080c14; color: #e8f0ff; font-family: 'Syne', sans-serif; }
+
+::-webkit-scrollbar       { width: 5px; }
+::-webkit-scrollbar-track { background: #0a1020; }
+::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
