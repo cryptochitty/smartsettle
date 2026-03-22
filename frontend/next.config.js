@@ -8,11 +8,16 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack: (config) => {
-    config.resolve.fallback = { fs: false, net: false, tls: false };
+    config.resolve.fallback = {
+      fs: false, net: false, tls: false,
+      crypto: false, stream: false,
+    };
     config.resolve.alias = {
       ...config.resolve.alias,
       "@react-native-async-storage/async-storage": false,
       "pino-pretty": false,
+      "lokijs": false,
+      "encoding": false,
     };
     return config;
   },
