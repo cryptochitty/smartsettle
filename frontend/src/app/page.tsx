@@ -487,6 +487,7 @@ export default function App() {
           </div>
         )}
       </main>
+      
 
       {settling && <NegotiationModal bill={settling} onClose={()=>setSettling(null)} />}
     </div>
