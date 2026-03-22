@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "SmartSettle — autonomous bill negotiation and payment on Celo",
   "scripts": {
+    "start": "node backend/src/index.js",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:local": "hardhat run scripts/deploy.js --network localhost",
