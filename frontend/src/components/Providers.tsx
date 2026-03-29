@@ -37,12 +37,17 @@ const celoSepolia: Chain = {
 };
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const queryClient = React.useMemo(() => new QueryClient(), []);
 
   const PROJECT_ID =
     process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
-  // ✅ MOVE INSIDE COMPONENT
   const connectors = React.useMemo(
     () =>
       connectorsForWallets(
@@ -66,7 +71,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     [PROJECT_ID]
   );
 
-  // ✅ MOVE INSIDE COMPONENT
   const config = React.useMemo(
     () =>
       createConfig({
@@ -79,6 +83,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
     [connectors]
   );
+
+  // 🚨 Prevent SSR / hydration issues
+  if (!mounted) return null;
 
   return (
     <WagmiProvider config={config}>
