@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
 import type { Invoice } from "../types";
 
-// ✅ dynamically load wagmi hook safely
-import { useAccount } from "wagmi";
+// ✅ 1. Dynamically import ConnectButton with SSR disabled to prevent build errors
+const RainbowConnectButton = dynamic(
+  () => import("@rainbow-me/rainbowkit").then((mod) => mod.ConnectButton),
+  { ssr: false }
+);
 
-// ✅ client-only components
+// ✅ 2. Dynamic imports for internal components
 const InvoiceUpload = dynamic(() => import("../components/invoice/InvoiceUpload"), { ssr: false });
 const BillsList = dynamic(() => import("../components/dashboard/BillsList"), { ssr: false });
 const ReceiptsList = dynamic(() => import("../components/dashboard/ReceiptsList"), { ssr: false });
@@ -20,9 +23,19 @@ type Tab = "dashboard" | "bills" | "receipts" | "wallet";
 
 export default function Home() {
   const { isConnected } = useAccount();
-
+  const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<Tab>("dashboard");
   const [negotiating, setNeg] = useState<Invoice | null>(null);
+
+  // ✅ 3. Ensure component is mounted before rendering hooks that rely on window/provider
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent rendering on server to avoid "TypeError: e is not a function"
+  if (!mounted) {
+    return <div className="min-h-screen bg-bg" />;
+  }
 
   return (
     <div className="min-h-screen bg-bg">
@@ -43,12 +56,12 @@ export default function Home() {
           </div>
 
           <nav className="hidden md:flex gap-1">
-            {(["dashboard","bills","receipts","wallet"] as Tab[]).map((t) => (
+            {(["dashboard", "bills", "receipts", "wallet"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-4 py-2 text-xs font-bold rounded-lg ${
-                  tab === t ? "text-accent" : "text-muted"
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${
+                  tab === t ? "text-accent" : "text-muted hover:text-white"
                 }`}
               >
                 {t.toUpperCase()}
@@ -56,22 +69,22 @@ export default function Home() {
             ))}
           </nav>
 
-          <ConnectButton />
+          <RainbowConnectButton />
         </div>
       </header>
 
-      {/* Main */}
+      {/* Main Content */}
       <main className="mx-auto max-w-6xl px-4 md:px-6 py-8">
-
         {!isConnected ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
-            <div className="text-7xl">⚖️</div>
-
+            <div className="text-7xl animate-bounce">⚖️</div>
             <h1 className="text-4xl font-black text-white">
               Pay bills automatically
             </h1>
-
-            <ConnectButton label="Connect Wallet" />
+            <p className="text-muted max-w-md">
+              Connect your wallet to manage your invoices and let your AI agent negotiate the best rates.
+            </p>
+            <RainbowConnectButton label="Connect Wallet" />
           </div>
         ) : (
           <>
@@ -89,6 +102,7 @@ export default function Home() {
         )}
       </main>
 
+      {/* Modals */}
       {negotiating && (
         <NegotiationModal
           invoice={negotiating}
