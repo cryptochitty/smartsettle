@@ -18,71 +18,32 @@ import {
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Chain } from "wagmi/chains";
-
 import "@rainbow-me/rainbowkit/styles.css";
 
-/* ─────────────────────────────
-   CELO CHAINS
-───────────────────────────── */
-
+/* CHAINS */
 export const celoMainnet: Chain = {
   id: 42220,
   name: "Celo Mainnet",
-  nativeCurrency: {
-    name: "CELO",
-    symbol: "CELO",
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ["https://forno.celo.org"] },
-  },
-  blockExplorers: {
-    default: {
-      name: "Celoscan",
-      url: "https://celoscan.io",
-    },
-  },
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: { default: { http: ["https://forno.celo.org"] } },
 };
 
 export const celoSepolia: Chain = {
   id: 11142220,
   name: "Celo Sepolia",
-  nativeCurrency: {
-    name: "CELO",
-    symbol: "CELO",
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
-  },
-  blockExplorers: {
-    default: {
-      name: "Blockscout",
-      url: "https://celo-sepolia.blockscout.com",
-    },
-  },
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: { default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] } },
   testnet: true,
 };
-
-/* ─────────────────────────────
-   WALLETCONNECT ID
-───────────────────────────── */
 
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
-if (!PROJECT_ID) {
-  console.warn("⚠️ WalletConnect Project ID missing");
-}
-
-/* ─────────────────────────────
-   CONNECTORS
-───────────────────────────── */
-
+/* CONNECTORS */
 const connectors = connectorsForWallets(
   [
     {
-      groupName: "Recommended",
+      groupName: "Wallets",
       wallets: [
         metaMaskWallet({ projectId: PROJECT_ID }),
         walletConnectWallet({ projectId: PROJECT_ID }),
@@ -98,10 +59,7 @@ const connectors = connectorsForWallets(
   }
 );
 
-/* ─────────────────────────────
-   WAGMI CONFIG (FIXED)
-───────────────────────────── */
-
+/* IMPORTANT FIX */
 const config = createConfig({
   connectors,
   chains: [celoMainnet, celoSepolia],
@@ -111,17 +69,11 @@ const config = createConfig({
   },
 });
 
-/* ─────────────────────────────
-   QUERY CLIENT
-───────────────────────────── */
-
-const queryClient = new QueryClient();
-
-/* ─────────────────────────────
-   PROVIDERS COMPONENT
-───────────────────────────── */
+/* 🔥 MOVE INSIDE COMPONENT (CRITICAL FIX) */
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const queryClient = React.useMemo(() => new QueryClient(), []);
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
@@ -132,7 +84,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
             accentColorForeground: "#020c1c",
             borderRadius: "medium",
           })}
-          modalSize="compact"
         >
           {children}
         </RainbowKitProvider>
