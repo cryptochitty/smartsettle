@@ -5,8 +5,8 @@ import {
   RainbowKitProvider,
   darkTheme,
   connectorsForWallets,
+  getDefaultConfig, // Consider using this for simplicity if possible
 } from "@rainbow-me/rainbowkit";
-
 import {
   metaMaskWallet,
   walletConnectWallet,
@@ -14,27 +14,45 @@ import {
   rainbowWallet,
   injectedWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-
 import { WagmiProvider, createConfig, http } from "wagmi";
+import { celo, celoSepolia } from "wagmi/chains"; // Use the standard imports
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Chain } from "wagmi/chains";
 import "@rainbow-me/rainbowkit/styles.css";
 
-/* CHAINS */
-const celoMainnet: Chain = {
-  id: 42220,
-  name: "Celo Mainnet",
-  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
-  rpcUrls: { default: { http: ["https://forno.celo.org"] } },
-};
+// 1. Move static IDs and Clients outside the component
+const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_FALLBACK_ID";
+const queryClient = new QueryClient();
 
-const celoSepolia: Chain = {
-  id: 11142220,
-  name: "Celo Sepolia",
-  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
-  rpcUrls: { default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] } },
-  testnet: true,
-};
+// 2. Define connectors outside
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: "Wallets",
+      wallets: [
+        metaMaskWallet({ projectId: PROJECT_ID }),
+        walletConnectWallet({ projectId: PROJECT_ID }),
+        coinbaseWallet({ appName: "SmartSettle" }),
+        rainbowWallet({ projectId: PROJECT_ID }),
+        injectedWallet(),
+      ],
+    },
+  ],
+  {
+    appName: "SmartSettle",
+    projectId: PROJECT_ID,
+  }
+);
+
+// 3. Define Wagmi config outside with SSR enabled
+const config = createConfig({
+  connectors,
+  chains: [celo, celoSepolia],
+  ssr: true, // 👈 Tell Wagmi we are in a Next.js environment
+  transports: {
+    [celo.id]: http(),
+    [celoSepolia.id]: http(),
+  },
+});
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);
@@ -43,55 +61,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  const queryClient = React.useMemo(() => new QueryClient(), []);
-
-  const PROJECT_ID =
-    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
-
-  const connectors = React.useMemo(
-    () =>
-      connectorsForWallets(
-        [
-          {
-            groupName: "Wallets",
-            wallets: [
-              metaMaskWallet({ projectId: PROJECT_ID }),
-              walletConnectWallet({ projectId: PROJECT_ID }),
-              coinbaseWallet({ appName: "SmartSettle" }),
-              rainbowWallet({ projectId: PROJECT_ID }),
-              injectedWallet({ projectId: PROJECT_ID }),
-            ],
-          },
-        ],
-        {
-          appName: "SmartSettle",
-          projectId: PROJECT_ID,
-        }
-      ),
-    [PROJECT_ID]
-  );
-
-  const config = React.useMemo(
-    () =>
-      createConfig({
-        connectors,
-        chains: [celoMainnet, celoSepolia],
-        transports: {
-          [celoMainnet.id]: http(),
-          [celoSepolia.id]: http(),
-        },
-      }),
-    [connectors]
-  );
-
-  // 🚨 Prevent SSR / hydration issues
+  // Use the mounted guard to prevent the "e is not a function" error during build
   if (!mounted) return null;
 
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          chains={[celoMainnet, celoSepolia]}
           theme={darkTheme({
             accentColor: "#00ff87",
             accentColorForeground: "#020c1c",
