@@ -29,13 +29,15 @@ app.use("/api/", rateLimit({
 app.use("/api/invoice",   invoiceRoutes);
 app.use("/api/negotiate", negotiateRoutes);
 app.use("/api/receipts",  receiptRoutes);
-app.use("/api/stats",     statsRoutes);
+app.use("/api/stats",      statsRoutes);
 
+// Updated Health Check for Mainnet
 app.get("/health", (_, res) => res.json({
   status:    "ok",
-  network:   "celoSepolia",
-  chainId:   11142220,
+  network:   "Celo Mainnet",
+  chainId:   42220,
   timestamp: new Date().toISOString(),
+  environment: process.env.NODE_ENV || "development"
 }));
 
 // ── Global error handler ──────────────────────────────────────────────────────
@@ -44,8 +46,16 @@ app.use((err, req, res, _next) => {
   res.status(err.status || 500).json({ error: err.message || "Internal server error" });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🚀 SmartSettle backend  →  http://localhost:${PORT}`);
-  console.log(`   Network  : Celo Sepolia (chain 11142220)`);
+  console.log(`   Network  : Celo Mainnet (chain 42220)`);
   console.log(`   Frontend : ${process.env.FRONTEND_URL || "http://localhost:3000"}\n`);
+});
+
+// Graceful shutdown for Render deployments
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received. Shutting down gracefully...");
+  server.close(() => {
+    console.log("Process terminated.");
+  });
 });
