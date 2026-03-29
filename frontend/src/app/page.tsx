@@ -6,14 +6,15 @@ import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
-import { InvoiceUpload } from "@/components/invoice/InvoiceUpload";
-import { BillsList } from "@/components/dashboard/BillsList";
-import { ReceiptsList } from "@/components/dashboard/ReceiptsList";
-import { StatsBar } from "@/components/dashboard/StatsBar";
-import { NegotiationModal } from "@/components/invoice/NegotiationModal";
-import { WalletPanel } from "@/components/wallet/WalletPanel";
+// ✅ RELATIVE IMPORTS (NO @)
+import { InvoiceUpload } from "../components/invoice/InvoiceUpload";
+import { BillsList } from "../components/dashboard/BillsList";
+import { ReceiptsList } from "../components/dashboard/ReceiptsList";
+import { StatsBar } from "../components/dashboard/StatsBar";
+import { NegotiationModal } from "../components/invoice/NegotiationModal";
+import { WalletPanel } from "../components/wallet/WalletPanel";
 
-import type { Invoice } from "@/types";
+import type { Invoice } from "../types";
 
 type Tab = "dashboard" | "bills" | "receipts" | "wallet";
 
