@@ -3,16 +3,17 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
+import dynamicImport from "next/dynamic";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
-// ✅ RELATIVE IMPORTS
-import { InvoiceUpload } from "../components/invoice/InvoiceUpload";
-import { BillsList } from "../components/dashboard/BillsList";
-import { ReceiptsList } from "../components/dashboard/ReceiptsList";
-import { StatsBar } from "../components/dashboard/StatsBar";
-import { NegotiationModal } from "../components/invoice/NegotiationModal";
-import { WalletPanel } from "../components/wallet/WalletPanel";
+// ✅ Disable SSR for all components
+const InvoiceUpload = dynamicImport(() => import("../components/invoice/InvoiceUpload"), { ssr: false });
+const BillsList = dynamicImport(() => import("../components/dashboard/BillsList"), { ssr: false });
+const ReceiptsList = dynamicImport(() => import("../components/dashboard/ReceiptsList"), { ssr: false });
+const StatsBar = dynamicImport(() => import("../components/dashboard/StatsBar"), { ssr: false });
+const NegotiationModal = dynamicImport(() => import("../components/invoice/NegotiationModal"), { ssr: false });
+const WalletPanel = dynamicImport(() => import("../components/wallet/WalletPanel"), { ssr: false });
 
 import type { Invoice } from "../types";
 
@@ -21,9 +22,7 @@ type Tab = "dashboard" | "bills" | "receipts" | "wallet";
 export default function Home() {
   const { isConnected } = useAccount();
 
-  // ✅ FIX: prevent SSR crash
   const [mounted, setMounted] = useState(false);
-
   const [tab, setTab] = useState<Tab>("dashboard");
   const [negotiating, setNeg] = useState<Invoice | null>(null);
 
@@ -31,7 +30,7 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // 🚨 CRITICAL: stops build-time crash
+  // 🚨 Prevent SSR crash
   if (!mounted) return null;
 
   return (
@@ -81,7 +80,7 @@ export default function Home() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 py-2 text-[10px] font-bold tracking-wider transition-all ${
+              className={`flex-1 py-2 text-[10px] font-bold tracking-wider ${
                 tab === t ? "text-accent bg-accent/5" : "text-muted"
               }`}
             >
@@ -105,15 +104,10 @@ export default function Home() {
             </h1>
 
             <p className="text-muted max-w-md">
-              Connect via Valora, MetaMask, or WalletConnect. The AI agent negotiates discounts and pays on Celo.
+              Connect via Valora, MetaMask, or WalletConnect.
             </p>
 
-            <div className="flex flex-col items-center gap-3">
-              <ConnectButton label="Connect Wallet" />
-              <p className="text-xs text-muted">
-                Supports Valora · MetaMask · WalletConnect
-              </p>
-            </div>
+            <ConnectButton label="Connect Wallet" />
           </div>
         ) : (
           <>
