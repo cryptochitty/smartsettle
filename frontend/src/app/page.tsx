@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   RainbowKitProvider,
   darkTheme,
@@ -21,16 +21,13 @@ import type { Chain } from "wagmi/chains";
 
 import "@rainbow-me/rainbowkit/styles.css";
 
-/* ── CHAINS ───────────────────────────── */
+/* ───────── CHAINS ───────── */
 
 export const celoMainnet: Chain = {
   id: 42220,
   name: "Celo Mainnet",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
-  rpcUrls: {
-    default: { http: ["https://forno.celo.org"] },
-    public: { http: ["https://forno.celo.org"] },
-  },
+  rpcUrls: { default: { http: ["https://forno.celo.org"] } },
   blockExplorers: {
     default: { name: "Celoscan", url: "https://celoscan.io" },
   },
@@ -42,23 +39,26 @@ export const celoSepolia: Chain = {
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
   rpcUrls: {
     default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
-    public: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
   },
   blockExplorers: {
-    default: { name: "Blockscout", url: "https://celo-sepolia.blockscout.com" },
+    default: {
+      name: "Blockscout",
+      url: "https://celo-sepolia.blockscout.com",
+    },
   },
   testnet: true,
 };
 
-/* ── ENV SAFETY ───────────────────────────── */
+/* ───────── ENV ───────── */
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+const PROJECT_ID =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 if (!PROJECT_ID) {
-  console.error("Missing WalletConnect Project ID");
+  console.warn("Missing WalletConnect Project ID");
 }
 
-/* ── CONNECTORS (client-safe) ───────────────────────────── */
+/* ───────── CONNECTORS ───────── */
 
 const connectors = connectorsForWallets(
   [
@@ -67,9 +67,7 @@ const connectors = connectorsForWallets(
       wallets: [
         metaMaskWallet({ projectId: PROJECT_ID }),
         walletConnectWallet({ projectId: PROJECT_ID }),
-        coinbaseWallet({
-          appName: "SmartSettle",
-        }),
+        coinbaseWallet({ appName: "SmartSettle" }),
         rainbowWallet({ projectId: PROJECT_ID }),
         injectedWallet({ projectId: PROJECT_ID }),
       ],
@@ -81,7 +79,7 @@ const connectors = connectorsForWallets(
   }
 );
 
-/* ── CONFIG (IMPORTANT FIX) ───────────────────────────── */
+/* ───────── WAGMI CONFIG ───────── */
 
 const config = createConfig({
   chains: [celoMainnet, celoSepolia],
@@ -92,20 +90,16 @@ const config = createConfig({
   },
 });
 
-/* ── QUERY CLIENT ───────────────────────────── */
+/* ───────── QUERY CLIENT (FIXED) ───────── */
 
-const queryClient = new QueryClient();
+function makeQueryClient() {
+  return new QueryClient();
+}
 
-/* ── PROVIDER ───────────────────────────── */
+/* ───────── PROVIDERS ───────── */
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
+  const [queryClient] = React.useState(() => makeQueryClient());
 
   return (
     <WagmiProvider config={config}>
