@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import {
   RainbowKitProvider,
   darkTheme,
@@ -14,12 +15,13 @@ import {
   injectedWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 
-import { createConfig, WagmiProvider, http } from "wagmi";
+import { WagmiProvider, createConfig, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import "@rainbow-me/rainbowkit/styles.css";
 import type { Chain } from "wagmi/chains";
 
-/* ── CELO CHAINS ───────────────────────────── */
+import "@rainbow-me/rainbowkit/styles.css";
+
+/* ── CHAINS ───────────────────────────── */
 
 export const celoMainnet: Chain = {
   id: 42220,
@@ -48,15 +50,15 @@ export const celoSepolia: Chain = {
   testnet: true,
 };
 
-/* ── WALLETCONNECT ───────────────────────────── */
+/* ── ENV SAFETY ───────────────────────────── */
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 if (!PROJECT_ID) {
-  throw new Error("WalletConnect Project ID missing");
+  console.error("Missing WalletConnect Project ID");
 }
 
-/* ── CONNECTORS ───────────────────────────── */
+/* ── CONNECTORS (client-safe) ───────────────────────────── */
 
 const connectors = connectorsForWallets(
   [
@@ -67,7 +69,6 @@ const connectors = connectorsForWallets(
         walletConnectWallet({ projectId: PROJECT_ID }),
         coinbaseWallet({
           appName: "SmartSettle",
-          appLogoUrl: "https://smartsettle-seven.vercel.app/logo.png",
         }),
         rainbowWallet({ projectId: PROJECT_ID }),
         injectedWallet({ projectId: PROJECT_ID }),
@@ -80,26 +81,32 @@ const connectors = connectorsForWallets(
   }
 );
 
-/* ── WAGMI CONFIG ───────────────────────────── */
+/* ── CONFIG (IMPORTANT FIX) ───────────────────────────── */
 
 const config = createConfig({
-  connectors,
   chains: [celoMainnet, celoSepolia],
-  autoConnect: true,
+  connectors,
   transports: {
-    [celoMainnet.id]: http("https://forno.celo.org"),
-    [celoSepolia.id]: http("https://forno.celo-sepolia.celo-testnet.org"),
+    [celoMainnet.id]: http(),
+    [celoSepolia.id]: http(),
   },
-  ssr: true,
 });
 
 /* ── QUERY CLIENT ───────────────────────────── */
 
 const queryClient = new QueryClient();
 
-/* ── PROVIDERS ───────────────────────────── */
+/* ── PROVIDER ───────────────────────────── */
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
