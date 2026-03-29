@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-// 🔥 Use relative imports (no alias issues)
+// ✅ NO @ alias (this is the fix)
 import { Providers } from "../components/Providers";
 import ClientToaster from "../components/ClientToaster";
 
