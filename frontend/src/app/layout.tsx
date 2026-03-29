@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-// ✅ NO @ alias (this is the fix)
+// ✅ FIXED IMPORTS (NO @)
 import { Providers } from "../components/Providers";
 import ClientToaster from "../components/ClientToaster";
 
