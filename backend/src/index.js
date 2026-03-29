@@ -10,23 +10,18 @@ const rateLimit = require("express-rate-limit");
 
 const { logActiveProvider } = require("./services/llmAdapter");
 
-// ── ROUTES ─────────────────────────────────────────────
+/* ROUTES */
 const invoiceRoutes = require("./routes/invoice");
 const negotiateRoutes = require("./routes/negotiate");
 const receiptRoutes = require("./routes/receipts");
 const statsRoutes = require("./routes/stats");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-/* ─────────────────────────────────────────────
-   TRUST PROXY (IMPORTANT FOR CLOUD DEPLOYMENT)
-───────────────────────────────────────────── */
+/* TRUST PROXY */
 app.set("trust proxy", 1);
 
-/* ─────────────────────────────────────────────
-   SECURITY LAYER
-───────────────────────────────────────────── */
+/* SECURITY */
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
@@ -34,9 +29,7 @@ app.use(
   })
 );
 
-/* ─────────────────────────────────────────────
-   CORS CONFIG
-───────────────────────────────────────────── */
+/* CORS */
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:3000",
@@ -44,69 +37,49 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error("CORS blocked"));
+      return callback(null, false); // safer
     },
     credentials: true,
   })
 );
 
-/* ─────────────────────────────────────────────
-   LOGGING + BODY PARSER
-───────────────────────────────────────────── */
+/* MIDDLEWARE */
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 
-/* ─────────────────────────────────────────────
-   RATE LIMITING
-───────────────────────────────────────────── */
+/* RATE LIMIT */
 app.use(
   "/api/",
   rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
-    message: {
-      error: "Too many requests. Please slow down.",
-    },
+    message: { error: "Too many requests. Please slow down." },
   })
 );
 
-/* ─────────────────────────────────────────────
-   REVENUE + USAGE TRACKING HOOK (IMPORTANT)
-───────────────────────────────────────────── */
+/* USAGE TRACKING */
 app.use((req, res, next) => {
-  req.startTime = Date.now();
+  const start = Date.now();
 
   res.on("finish", () => {
-    const duration = Date.now() - req.startTime;
-
-    console.log(
-      `📡 ${req.method} ${req.url} | ${res.statusCode} | ${duration}ms`
-    );
-
-    // 🔥 FUTURE UPGRADE:
-    // Save API usage for billing / Stripe / SaaS metering
-    // saveUsage(req.ip, req.url, duration);
+    const duration = Date.now() - start;
+    console.log(`📡 ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
   });
 
   next();
 });
 
-/* ─────────────────────────────────────────────
-   API ROUTES
-───────────────────────────────────────────── */
+/* ROUTES */
 app.use("/api/invoice", invoiceRoutes);
 app.use("/api/negotiate", negotiateRoutes);
 app.use("/api/receipts", receiptRoutes);
 app.use("/api/stats", statsRoutes);
 
-/* ─────────────────────────────────────────────
-   HEALTH CHECK
-───────────────────────────────────────────── */
+/* HEALTH */
 app.get("/health", (_, res) => {
   res.json({
     status: "ok",
@@ -118,44 +91,18 @@ app.get("/health", (_, res) => {
   });
 });
 
-/* ─────────────────────────────────────────────
-   404 HANDLER
-───────────────────────────────────────────── */
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Route not found",
-  });
+/* 404 */
+app.use((_, res) => {
+  res.status(404).json({ error: "Route not found" });
 });
 
-/* ─────────────────────────────────────────────
-   GLOBAL ERROR HANDLER
-───────────────────────────────────────────── */
+/* ERROR HANDLER */
 app.use((err, req, res, _next) => {
   console.error("[ERROR]", err.message);
-
   res.status(err.status || 500).json({
     error: err.message || "Internal server error",
   });
 });
 
-/* ─────────────────────────────────────────────
-   START SERVER
-───────────────────────────────────────────── */
-app.listen(PORT, () => {
-  console.log("\n🚀 SmartSettle Backend Running");
-  console.log("──────────────────────────────");
-  console.log(`🌐 URL        : http://localhost:${PORT}`);
-  console.log(
-    `🌍 FRONTEND   : ${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }`
-  );
-  console.log(`⛓️  NETWORK    : Celo Sepolia (11142220)`);
-  console.log("──────────────────────────────");
-
-  logActiveProvider();
-
-  console.log(
-    "\n💰 Ready: Invoice | Negotiation | Receipts | Stats APIs\n"
-  );
-});
+/* EXPORT APP (IMPORTANT) */
+module.exports = app;
