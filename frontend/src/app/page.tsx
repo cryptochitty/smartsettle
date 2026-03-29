@@ -1,114 +1,135 @@
 'use client';
 
-import React from "react";
-import {
-  RainbowKitProvider,
-  darkTheme,
-  connectorsForWallets,
-} from "@rainbow-me/rainbowkit";
+export const dynamic = 'force-dynamic';
 
-import {
-  metaMaskWallet,
-  walletConnectWallet,
-  coinbaseWallet,
-  rainbowWallet,
-  injectedWallet,
-} from "@rainbow-me/rainbowkit/wallets";
+import { useState } from "react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
 
-import { WagmiProvider, createConfig, http } from "wagmi";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Chain } from "wagmi/chains";
+import { InvoiceUpload } from "@/components/invoice/InvoiceUpload";
+import { BillsList } from "@/components/dashboard/BillsList";
+import { ReceiptsList } from "@/components/dashboard/ReceiptsList";
+import { StatsBar } from "@/components/dashboard/StatsBar";
+import { NegotiationModal } from "@/components/invoice/NegotiationModal";
+import { WalletPanel } from "@/components/wallet/WalletPanel";
 
-import "@rainbow-me/rainbowkit/styles.css";
+import type { Invoice } from "@/types";
 
-/* ───────── CHAINS ───────── */
+type Tab = "dashboard" | "bills" | "receipts" | "wallet";
 
-const celoMainnet: Chain = {
-  id: 42220,
-  name: "Celo Mainnet",
-  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
-  rpcUrls: { default: { http: ["https://forno.celo.org"] } },
-  blockExplorers: {
-    default: { name: "Celoscan", url: "https://celoscan.io" },
-  },
-};
-
-const celoSepolia: Chain = {
-  id: 11142220,
-  name: "Celo Sepolia",
-  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
-  rpcUrls: {
-    default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
-  },
-  blockExplorers: {
-    default: {
-      name: "Blockscout",
-      url: "https://celo-sepolia.blockscout.com",
-    },
-  },
-  testnet: true,
-};
-
-/* ───────── PROVIDERS ───────── */
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = React.useState(() => new QueryClient());
-
-  const PROJECT_ID =
-    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
-
-  // ✅ Move connectors INSIDE
-  const connectors = React.useMemo(
-    () =>
-      connectorsForWallets(
-        [
-          {
-            groupName: "Wallets",
-            wallets: [
-              metaMaskWallet({ projectId: PROJECT_ID }),
-              walletConnectWallet({ projectId: PROJECT_ID }),
-              coinbaseWallet({ appName: "SmartSettle" }),
-              rainbowWallet({ projectId: PROJECT_ID }),
-              injectedWallet({ projectId: PROJECT_ID }),
-            ],
-          },
-        ],
-        {
-          appName: "SmartSettle",
-          projectId: PROJECT_ID,
-        }
-      ),
-    [PROJECT_ID]
-  );
-
-  // ✅ Move config INSIDE
-  const config = React.useMemo(
-    () =>
-      createConfig({
-        chains: [celoMainnet, celoSepolia],
-        connectors,
-        transports: {
-          [celoMainnet.id]: http(),
-          [celoSepolia.id]: http(),
-        },
-      }),
-    [connectors]
-  );
+export default function Home() {
+  const { isConnected } = useAccount();
+  const [tab, setTab] = useState<Tab>("dashboard");
+  const [negotiating, setNeg] = useState<Invoice | null>(null);
 
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          chains={[celoMainnet, celoSepolia]}
-          theme={darkTheme({
-            accentColor: "#00ff87",
-            accentColorForeground: "#020c1c",
-            borderRadius: "medium",
-          })}
-        >
-          {children}
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <div className="min-h-screen bg-bg">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
+        <div className="mx-auto max-w-6xl px-6 flex items-center justify-between h-16">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center text-lg">
+              ⚖️
+            </div>
+            <div>
+              <div className="text-base font-black tracking-tight text-white">
+                SmartSettle
+              </div>
+              <div className="text-[10px] text-muted tracking-widest font-mono">
+                AUTONOMOUS BILL AGENT · CELO SEPOLIA
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex gap-1">
+            {(["dashboard","bills","receipts","wallet"] as Tab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-4 py-2 text-xs font-bold tracking-widest rounded-lg transition-all ${
+                  tab === t
+                    ? "bg-accent/10 text-accent border border-accent/30"
+                    : "text-muted hover:text-white"
+                }`}
+              >
+                {t.toUpperCase()}
+              </button>
+            ))}
+          </nav>
+
+          <ConnectButton chainStatus="icon" showBalance={false} />
+        </div>
+
+        {/* Mobile Nav */}
+        <div className="md:hidden flex border-t border-border">
+          {(["dashboard","bills","receipts","wallet"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2 text-[10px] font-bold tracking-wider transition-all ${
+                tab === t ? "text-accent bg-accent/5" : "text-muted"
+              }`}
+            >
+              {t.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="mx-auto max-w-6xl px-4 md:px-6 py-8">
+        {!isConnected ? (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
+            <div className="text-7xl">⚖️</div>
+
+            <h1 className="text-4xl md:text-5xl font-black text-white">
+              Pay bills at the{" "}
+              <span className="text-accent">lowest price.</span>
+              <br />
+              Automatically.
+            </h1>
+
+            <p className="text-muted max-w-md">
+              Connect via Valora, MetaMask, or WalletConnect. The AI agent negotiates discounts and pays on Celo.
+            </p>
+
+            <div className="flex flex-col items-center gap-3">
+              <ConnectButton label="Connect Wallet" />
+              <p className="text-xs text-muted">
+                Supports Valora · MetaMask · WalletConnect
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {tab === "dashboard" && (
+              <div className="space-y-6">
+                <StatsBar />
+                <BillsList onNegotiate={setNeg} />
+              </div>
+            )}
+
+            {tab === "bills" && (
+              <InvoiceUpload onNegotiate={setNeg} />
+            )}
+
+            {tab === "receipts" && <ReceiptsList />}
+
+            {tab === "wallet" && <WalletPanel />}
+          </>
+        )}
+      </main>
+
+      {/* Modal */}
+      {negotiating && (
+        <NegotiationModal
+          invoice={negotiating}
+          onClose={() => setNeg(null)}
+        />
+      )}
+    </div>
   );
 }
