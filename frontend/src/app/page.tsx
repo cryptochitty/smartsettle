@@ -2,11 +2,11 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
-// ✅ RELATIVE IMPORTS (NO @)
+// ✅ RELATIVE IMPORTS
 import { InvoiceUpload } from "../components/invoice/InvoiceUpload";
 import { BillsList } from "../components/dashboard/BillsList";
 import { ReceiptsList } from "../components/dashboard/ReceiptsList";
@@ -20,8 +20,19 @@ type Tab = "dashboard" | "bills" | "receipts" | "wallet";
 
 export default function Home() {
   const { isConnected } = useAccount();
+
+  // ✅ FIX: prevent SSR crash
+  const [mounted, setMounted] = useState(false);
+
   const [tab, setTab] = useState<Tab>("dashboard");
   const [negotiating, setNeg] = useState<Invoice | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 🚨 CRITICAL: stops build-time crash
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-bg">
