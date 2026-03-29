@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
-import ClientToaster from "@/components/ClientToaster";
+
+// 🔥 Use relative imports (no alias issues)
+import { Providers } from "../components/Providers";
+import ClientToaster from "../components/ClientToaster";
 
 export const metadata: Metadata = {
   title: "SmartSettle — Autonomous Bill Agent",
