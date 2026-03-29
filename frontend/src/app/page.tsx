@@ -1,6 +1,8 @@
 "use client";
 // @ts-nocheck
+
 import { useState } from "react";
+import { useAccount } from "wagmi";
 
 /* ── CONFIG ───────────────────────────────────────── */
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -25,12 +27,13 @@ const BILL = {
 };
 
 export default function Page() {
-  const [connected, setConnected] = useState(false);
+  const { address, isConnected } = useAccount();
+
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState(null);
   const [agreed, setAgreed] = useState(false);
-  const [view, setView] = useState("app"); // app | terms | privacy | disclaimer
+  const [view, setView] = useState("app");
 
   /* ── NEGOTIATE ─────────────────────────────────── */
   const negotiate = async () => {
@@ -56,6 +59,7 @@ export default function Page() {
   /* ── PAY ───────────────────────────────────────── */
   const pay = async () => {
     if (!agreed) return;
+    if (!address) return alert("Connect wallet");
 
     try {
       setLoading(true);
@@ -64,7 +68,7 @@ export default function Page() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          to: "0xCBbd16c9697C6b0FB8a67C475b71F7cAC9BE716F",
+          user: address,
           amount: result.user_receives,
         }),
       });
@@ -82,9 +86,12 @@ export default function Page() {
   if (view === "terms") {
     return (
       <LegalLayout title="Terms of Service" setView={setView}>
-        <p>SmartSettle provides AI-powered bill negotiation on blockchain networks like :contentReference[oaicite:0]{index=0}.</p>
-        <p>No financial advice. Transactions are irreversible. Fees may apply.</p>
-        <p>You are responsible for verifying all transactions.</p>
+        <p>
+          SmartSettle provides AI-powered bill negotiation on the{" "}
+          :contentReference[oaicite:0]{index=0} network.
+        </p>
+        <p>No financial advice. Transactions are irreversible.</p>
+        <p>Users are responsible for verifying transactions.</p>
       </LegalLayout>
     );
   }
@@ -92,9 +99,8 @@ export default function Page() {
   if (view === "privacy") {
     return (
       <LegalLayout title="Privacy Policy" setView={setView}>
-        <p>We collect wallet address and transaction data.</p>
-        <p>We do NOT store private keys.</p>
-        <p>Data is used to improve services and process transactions.</p>
+        <p>We collect wallet address and transaction metadata.</p>
+        <p>We never store private keys.</p>
       </LegalLayout>
     );
   }
@@ -102,8 +108,8 @@ export default function Page() {
   if (view === "disclaimer") {
     return (
       <LegalLayout title="Disclaimer" setView={setView}>
-        <p>SmartSettle is an AI-powered platform. Results are not guaranteed.</p>
-        <p>Blockchain transactions are irreversible. Fees may apply.</p>
+        <p>AI negotiation results are not guaranteed.</p>
+        <p>Blockchain transactions are irreversible.</p>
         <p>Use at your own risk.</p>
       </LegalLayout>
     );
@@ -118,14 +124,16 @@ export default function Page() {
           {NETWORK_NAME} · {CHAIN_ID}
         </p>
 
-        {!connected && (
-          <button style={styles.primaryBtn} onClick={() => setConnected(true)}>
-            Connect Wallet
-          </button>
+        {!isConnected && (
+          <p style={{ marginTop: 20 }}>Please connect wallet</p>
         )}
 
-        {connected && (
+        {isConnected && (
           <>
+            <p style={{ fontSize: 12, color: "#00ff87" }}>
+              Connected: {address?.slice(0, 6)}...{address?.slice(-4)}
+            </p>
+
             <h3 style={{ marginTop: 20 }}>{BILL.name}</h3>
             <p>₹{BILL.amount}</p>
 
@@ -147,11 +155,6 @@ export default function Page() {
 
                 <p>💰 Fee: ₹{Math.round(result.platform_fee)}</p>
 
-                <p style={{ color: "#00ff87" }}>
-                  Saved ₹{Math.round(BILL.amount - result.user_receives)}
-                </p>
-
-                {/* Agreement */}
                 <label style={styles.checkbox}>
                   <input
                     type="checkbox"
@@ -170,7 +173,7 @@ export default function Page() {
                       : "#1e3354",
                   }}
                 >
-                  {loading ? "Processing..." : "⚡ Pay in cUSD"}
+                  {loading ? "Processing..." : "⚡ Pay"}
                 </button>
               </div>
             )}
@@ -197,7 +200,8 @@ export default function Page() {
           <span onClick={() => setView("disclaimer")}>Disclaimer</span>
 
           <p style={{ marginTop: 6 }}>
-            Non-custodial app on :contentReference[oaicite:1]{index=1}. Use at your own risk.
+            Non-custodial app on{" "}
+            :contentReference[oaicite:1]{index=1}. Use at your own risk.
           </p>
         </div>
       </div>
