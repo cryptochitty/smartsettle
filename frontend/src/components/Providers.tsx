@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from "react";
 import {
@@ -21,14 +21,14 @@ import type { Chain } from "wagmi/chains";
 import "@rainbow-me/rainbowkit/styles.css";
 
 /* CHAINS */
-export const celoMainnet: Chain = {
+const celoMainnet: Chain = {
   id: 42220,
   name: "Celo Mainnet",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
   rpcUrls: { default: { http: ["https://forno.celo.org"] } },
 };
 
-export const celoSepolia: Chain = {
+const celoSepolia: Chain = {
   id: 11142220,
   name: "Celo Sepolia",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
@@ -36,43 +36,49 @@ export const celoSepolia: Chain = {
   testnet: true,
 };
 
-const PROJECT_ID =
-  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
-
-/* CONNECTORS */
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: "Wallets",
-      wallets: [
-        metaMaskWallet({ projectId: PROJECT_ID }),
-        walletConnectWallet({ projectId: PROJECT_ID }),
-        coinbaseWallet({ appName: "SmartSettle" }),
-        rainbowWallet({ projectId: PROJECT_ID }),
-        injectedWallet({ projectId: PROJECT_ID }),
-      ],
-    },
-  ],
-  {
-    appName: "SmartSettle",
-    projectId: PROJECT_ID,
-  }
-);
-
-/* IMPORTANT FIX */
-const config = createConfig({
-  connectors,
-  chains: [celoMainnet, celoSepolia],
-  transports: {
-    [celoMainnet.id]: http(),
-    [celoSepolia.id]: http(),
-  },
-});
-
-/* 🔥 MOVE INSIDE COMPONENT (CRITICAL FIX) */
-
 export function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = React.useMemo(() => new QueryClient(), []);
+
+  const PROJECT_ID =
+    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+
+  // ✅ MOVE INSIDE COMPONENT
+  const connectors = React.useMemo(
+    () =>
+      connectorsForWallets(
+        [
+          {
+            groupName: "Wallets",
+            wallets: [
+              metaMaskWallet({ projectId: PROJECT_ID }),
+              walletConnectWallet({ projectId: PROJECT_ID }),
+              coinbaseWallet({ appName: "SmartSettle" }),
+              rainbowWallet({ projectId: PROJECT_ID }),
+              injectedWallet({ projectId: PROJECT_ID }),
+            ],
+          },
+        ],
+        {
+          appName: "SmartSettle",
+          projectId: PROJECT_ID,
+        }
+      ),
+    [PROJECT_ID]
+  );
+
+  // ✅ MOVE INSIDE COMPONENT
+  const config = React.useMemo(
+    () =>
+      createConfig({
+        connectors,
+        chains: [celoMainnet, celoSepolia],
+        transports: {
+          [celoMainnet.id]: http(),
+          [celoSepolia.id]: http(),
+        },
+      }),
+    [connectors]
+  );
 
   return (
     <WagmiProvider config={config}>
