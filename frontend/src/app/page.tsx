@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from "react";
 import {
@@ -23,7 +23,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 
 /* ───────── CHAINS ───────── */
 
-export const celoMainnet: Chain = {
+const celoMainnet: Chain = {
   id: 42220,
   name: "Celo Mainnet",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
@@ -33,7 +33,7 @@ export const celoMainnet: Chain = {
   },
 };
 
-export const celoSepolia: Chain = {
+const celoSepolia: Chain = {
   id: 11142220,
   name: "Celo Sepolia",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
@@ -49,57 +49,51 @@ export const celoSepolia: Chain = {
   testnet: true,
 };
 
-/* ───────── ENV ───────── */
-
-const PROJECT_ID =
-  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
-
-if (!PROJECT_ID) {
-  console.warn("Missing WalletConnect Project ID");
-}
-
-/* ───────── CONNECTORS ───────── */
-
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: "Wallets",
-      wallets: [
-        metaMaskWallet({ projectId: PROJECT_ID }),
-        walletConnectWallet({ projectId: PROJECT_ID }),
-        coinbaseWallet({ appName: "SmartSettle" }),
-        rainbowWallet({ projectId: PROJECT_ID }),
-        injectedWallet({ projectId: PROJECT_ID }),
-      ],
-    },
-  ],
-  {
-    appName: "SmartSettle",
-    projectId: PROJECT_ID,
-  }
-);
-
-/* ───────── WAGMI CONFIG ───────── */
-
-const config = createConfig({
-  chains: [celoMainnet, celoSepolia],
-  connectors,
-  transports: {
-    [celoMainnet.id]: http(),
-    [celoSepolia.id]: http(),
-  },
-});
-
-/* ───────── QUERY CLIENT (FIXED) ───────── */
-
-function makeQueryClient() {
-  return new QueryClient();
-}
-
 /* ───────── PROVIDERS ───────── */
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = React.useState(() => makeQueryClient());
+  const [queryClient] = React.useState(() => new QueryClient());
+
+  const PROJECT_ID =
+    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+
+  // ✅ Move connectors INSIDE
+  const connectors = React.useMemo(
+    () =>
+      connectorsForWallets(
+        [
+          {
+            groupName: "Wallets",
+            wallets: [
+              metaMaskWallet({ projectId: PROJECT_ID }),
+              walletConnectWallet({ projectId: PROJECT_ID }),
+              coinbaseWallet({ appName: "SmartSettle" }),
+              rainbowWallet({ projectId: PROJECT_ID }),
+              injectedWallet({ projectId: PROJECT_ID }),
+            ],
+          },
+        ],
+        {
+          appName: "SmartSettle",
+          projectId: PROJECT_ID,
+        }
+      ),
+    [PROJECT_ID]
+  );
+
+  // ✅ Move config INSIDE
+  const config = React.useMemo(
+    () =>
+      createConfig({
+        chains: [celoMainnet, celoSepolia],
+        connectors,
+        transports: {
+          [celoMainnet.id]: http(),
+          [celoSepolia.id]: http(),
+        },
+      }),
+    [connectors]
+  );
 
   return (
     <WagmiProvider config={config}>
