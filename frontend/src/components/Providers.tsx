@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { RainbowKitProvider, darkTheme, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http } from "wagmi";
-// ✅ Switch to viem/chains for a stable 'celo' definition
+// ✅ We are using viem/chains now. Notice celoSepolia is REMOVED.
 import { celo } from "viem/chains"; 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -14,6 +14,7 @@ const config = getDefaultConfig({
   chains: [celo], 
   ssr: true, 
   transports: {
+    // celo.id is 42220
     [celo.id]: http("https://forno.celo.org"),
   },
 });
@@ -26,7 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  // ✅ This barrier prevents the "undefined" crash during Next.js pre-rendering
+  // ✅ Hydration barrier: stops the build from executing wallet logic on the server
   if (!mounted) return null;
 
   return (
