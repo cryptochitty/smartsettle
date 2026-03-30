@@ -4,8 +4,8 @@ import { parseUnits, formatUnits } from "viem";
 import { ADDRESSES, SMART_SETTLE_ABI, AGENT_WALLET_ABI, CUSD_ABI } from "@/lib/contracts";
 
 const getAddrs = (chainId?: number) => {
-  if (chainId === 44787) return ADDRESSES.celoSepolia;
-  return ADDRESSES.celo; // Default fallback to Mainnet
+  // Safe fallback: Always return Celo addresses if chainId is missing or different
+  return chainId === 44787 ? ADDRESSES.celoSepolia : ADDRESSES.celo;
 };
 
 export function useCUSDBalance() {
