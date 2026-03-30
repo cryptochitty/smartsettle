@@ -7,11 +7,9 @@ import { celo } from "viem/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "3fcc6bba000000000000000000000000";
-
 const config = getDefaultConfig({
   appName: "SmartSettle",
-  projectId: PROJECT_ID,
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "3fcc6bba000000000000000000000000",
   chains: [celo], 
   ssr: true, 
   transports: {
@@ -23,11 +21,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [queryClient] = useState(() => new QueryClient());
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  // Strict hydration barrier
   if (!mounted) return null;
 
   return (
