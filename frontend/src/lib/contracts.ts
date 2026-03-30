@@ -1,33 +1,70 @@
+/**
+ * @file src/lib/contracts.ts
+ * Flattened contract configuration to prevent "undefined" crashes during Next.js build.
+ */
+
 export const ADDRESSES = {
+  // Celo Mainnet (Chain ID: 42220)
   celo: {
     SMART_SETTLE:  (process.env.NEXT_PUBLIC_SMART_SETTLE_ADDRESS  || "0x0000000000000000000000000000000000000000") as `0x${string}`,
     AGENT_WALLET:  (process.env.NEXT_PUBLIC_AGENT_WALLET_ADDRESS  || "0x0000000000000000000000000000000000000000") as `0x${string}`,
     RECEIPT_STORE: (process.env.NEXT_PUBLIC_RECEIPT_STORE_ADDRESS || "0x0000000000000000000000000000000000000000") as `0x${string}`,
-    CUSD:          "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`, // Official cUSD Mainnet
+    // Official Celo Mainnet cUSD Proxy Address
+    CUSD:          "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`, 
   },
-  // Mirroring celo to celoSepolia to prevent "undefined" crashes in legacy hooks
+  // Celo Sepolia (Chain ID: 44787)
+  // We mirror the structure here so that code calling .celoSepolia never hits an 'undefined' object
   celoSepolia: {
     SMART_SETTLE:  (process.env.NEXT_PUBLIC_SMART_SETTLE_ADDRESS  || "0x0000000000000000000000000000000000000000") as `0x${string}`,
     AGENT_WALLET:  (process.env.NEXT_PUBLIC_AGENT_WALLET_ADDRESS  || "0x0000000000000000000000000000000000000000") as `0x${string}`,
     RECEIPT_STORE: (process.env.NEXT_PUBLIC_RECEIPT_STORE_ADDRESS || "0x0000000000000000000000000000000000000000") as `0x${string}`,
-    CUSD:          "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`,
+    // Official Celo Sepolia cUSD Address
+    CUSD:          "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1" as `0x${string}`,
   }
 };
 
 export const CUSD_ABI = [
-  { name: "approve", type: "function", stateMutability: "nonpayable", inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }], outputs: [{ name: "", type: "bool" }] },
-  { name: "allowance", type: "function", stateMutability: "view", inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }], outputs: [{ name: "", type: "uint256" }] },
-  { name: "balanceOf", type: "function", stateMutability: "view", inputs: [{ name: "account", type: "address" }], outputs: [{ name: "", type: "uint256" }] },
+  { name: "approve", type: "function", stateMutability: "nonpayable", 
+    inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }], 
+    outputs: [{ name: "", type: "bool" }] },
+  { name: "allowance", type: "function", stateMutability: "view", 
+    inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }], 
+    outputs: [{ name: "", type: "uint256" }] },
+  { name: "balanceOf", type: "function", stateMutability: "view", 
+    inputs: [{ name: "account", type: "address" }], 
+    outputs: [{ name: "", type: "uint256" }] },
 ] as const;
 
 export const SMART_SETTLE_ABI = [
-  { name: "getUserInvoices", type: "function", stateMutability: "view", inputs: [{ name: "user", type: "address" }], outputs: [{ name: "", type: "bytes32[]" }] },
-  { name: "totalSaved", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
-  { name: "totalPayments", type: "function", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "uint256" }] },
+  { name: "getUserInvoices", type: "function", stateMutability: "view", 
+    inputs: [{ name: "user", type: "address" }], 
+    outputs: [{ name: "", type: "bytes32[]" }] },
+  { name: "totalSaved", type: "function", stateMutability: "view", 
+    inputs: [], 
+    outputs: [{ name: "", type: "uint256" }] },
+  { name: "totalPayments", type: "function", stateMutability: "view", 
+    inputs: [], 
+    outputs: [{ name: "", type: "uint256" }] },
+  { name: "PaymentExecuted", type: "event",
+    inputs: [
+      { name: "invoiceId",  type: "bytes32", indexed: true  },
+      { name: "payer",      type: "address", indexed: true  },
+      { name: "provider",    type: "address", indexed: true  },
+      { name: "amountPaid",  type: "uint256", indexed: false },
+      { name: "amountSaved", type: "uint256", indexed: false },
+      { name: "receiptId",   type: "bytes32", indexed: false },
+    ],
+  },
 ] as const;
 
 export const AGENT_WALLET_ABI = [
-  { name: "deposit", type: "function", stateMutability: "nonpayable", inputs: [{ name: "amount", type: "uint256" }], outputs: [] },
-  { name: "withdraw", type: "function", stateMutability: "nonpayable", inputs: [{ name: "amount", type: "uint256" }], outputs: [] },
-  { name: "getBalance", type: "function", stateMutability: "view", inputs: [{ name: "user", type: "address" }], outputs: [{ name: "", type: "uint256" }] },
+  { name: "deposit", type: "function", stateMutability: "nonpayable", 
+    inputs: [{ name: "amount", type: "uint256" }], 
+    outputs: [] },
+  { name: "withdraw", type: "function", stateMutability: "nonpayable", 
+    inputs: [{ name: "amount", type: "uint256" }], 
+    outputs: [] },
+  { name: "getBalance", type: "function", stateMutability: "view", 
+    inputs: [{ name: "user", type: "address" }], 
+    outputs: [{ name: "balance", type: "uint256" }] },
 ] as const;
