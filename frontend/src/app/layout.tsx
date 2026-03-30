@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
-// ✅ FIXED IMPORTS (NO @)
 import { Providers } from "../components/Providers";
 import ClientToaster from "../components/ClientToaster";
 
 export const metadata: Metadata = {
   title: "SmartSettle — Autonomous Bill Agent",
-  description:
-    "Pay bills at the lowest price, automatically. Powered by AI and Celo.",
+  description: "Pay bills at the lowest price, automatically. Powered by AI and Celo.",
 };
 
 export default function RootLayout({
@@ -17,7 +14,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    // 1. Add suppressHydrationWarning to prevent errors when extensions inject code
+    <html lang="en" suppressHydrationWarning>
       <body className="bg-bg text-white font-sans antialiased">
         <Providers>
           {children}
