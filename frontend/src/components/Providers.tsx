@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { RainbowKitProvider, darkTheme, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http } from "wagmi";
-// ✅ Switch to viem/chains for reliable definitions
+// ✅ Switch to viem/chains and ONLY import celo (Mainnet)
 import { celo } from "viem/chains"; 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -14,6 +14,7 @@ const config = getDefaultConfig({
   chains: [celo], 
   ssr: true, 
   transports: {
+    // 42220 is the Chain ID for Celo Mainnet
     [42220]: http("https://forno.celo.org"),
   },
 });
@@ -26,7 +27,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Hydration barrier to prevent SSR errors
+  // This prevents hydration mismatch errors during the build
   if (!mounted) return null;
 
   return (
