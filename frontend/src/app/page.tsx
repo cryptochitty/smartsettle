@@ -1,15 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { WalletPanel } from "@/components/wallet/WalletPanel";
+import dynamic from "next/dynamic"; // Required to fix IndexedDB error
 import { Info, ShieldCheck, Upload, Activity, FileText, CheckCircle, Zap, Loader2 } from "lucide-react";
+
+// --- DYNAMIC IMPORT (Fixes ReferenceError: indexedDB is not defined) ---
+const WalletPanel = dynamic(
+  () => import("@/components/wallet/WalletPanel").then((mod) => mod.WalletPanel),
+  { ssr: false }
+);
 
 export default function Dashboard() {
   // --- STATE MANAGEMENT ---
+  const [mounted, setMounted] = useState(false);
   const [logs, setLogs] = useState([]);
   const [progress, setProgress] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [file, setFile] = useState(null);
+
+  // --- MOUNT CHECK ---
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // --- LOGIC: ADD TO TERMINAL ---
   const addLog = (msg, type = "info") => {
@@ -26,12 +38,10 @@ export default function Dashboard() {
     addLog("Initializing Autonomous Agent...", "info");
 
     try {
-      // 1. Simulate OCR/Scanning
       setProgress(30);
       addLog("Scanning invoice for provider details...", "info");
       
-      // 2. Call your Render Backend
-      // REPLACE THIS URL WITH YOUR ACTUAL RENDER URL
+      // Replace with your actual Render URL
       const BACKEND_URL = "https://your-backend-name.onrender.com"; 
       
       const response = await fetch(`${BACKEND_URL}/agent`, {
@@ -70,6 +80,11 @@ export default function Dashboard() {
     }
   };
 
+  // Prevent hydration mismatch by returning a shell until mounted
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#060a0f]" />;
+  }
+
   return (
     <main className="min-h-screen bg-[#060a0f] text-slate-200 font-sans selection:bg-cyan-500/30">
       
@@ -106,9 +121,6 @@ export default function Dashboard() {
                 <span className="text-xs font-mono text-emerald-400">Agent Online</span>
               </div>
             </div>
-            <button className="px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold hover:bg-emerald-500/20 transition-all">
-              Connect Wallet
-            </button>
           </div>
         </header>
 
@@ -132,7 +144,6 @@ export default function Dashboard() {
 
           {/* LEFT: ACTION PANEL */}
           <section className="lg:col-span-7 space-y-6">
-            
             <div className="rounded-2xl border border-white/10 bg-[#0d1520] overflow-hidden shadow-2xl">
               <div className="px-6 py-4 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2">
@@ -180,7 +191,6 @@ export default function Dashboard() {
 
           {/* RIGHT: AGENT LOG & WALLET */}
           <aside className="lg:col-span-5 space-y-6">
-            
             <WalletPanel />
 
             <div className="rounded-2xl border border-white/10 bg-[#0d1520] flex flex-col h-[450px] shadow-2xl">
@@ -229,7 +239,6 @@ export default function Dashboard() {
             <a href="https://celoscan.io" target="_blank" className="hover:text-emerald-400 transition-colors">Explorer ↗</a>
           </div>
         </footer>
-
       </div>
     </main>
   );
