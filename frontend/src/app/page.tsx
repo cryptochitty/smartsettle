@@ -1,107 +1,98 @@
-"use client";
-import { useState, useEffect } from "react"; // Added useEffect
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
-import { InvoiceUpload }     from "@/components/invoice/InvoiceUpload";
-import { BillsList }          from "@/components/dashboard/BillsList";
-import { ReceiptsList }       from "@/components/dashboard/ReceiptsList";
-import { StatsBar }           from "@/components/dashboard/StatsBar";
-import { NegotiationModal }  from "@/components/invoice/NegotiationModal";
-import { WalletPanel }       from "@/components/wallet/WalletPanel";
-import type { Invoice } from "@/types";
+import { WalletPanel } from "@/components/wallet/WalletPanel";
+// Assuming you have these or similar components
+// import { StatsBar } from "@/components/dashboard/StatsBar";
+// import { InvoiceList } from "@/components/invoice/InvoiceList";
 
-type Tab = "dashboard" | "bills" | "receipts" | "wallet";
-
-export default function Home() {
-  const { isConnected } = useAccount();
-  const [tab, setTab] = useState<Tab>("dashboard");
-  const [negotiating, setNeg] = useState<Invoice | null>(null);
-  
-  // --- HYDRATION FIX ---
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Prevent server-side rendering of the internal UI
-  if (!mounted) {
-    return <div className="min-h-screen bg-bg" />; 
-  }
-  // ---------------------
-
+export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-bg">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
-        <div className="mx-auto max-w-6xl px-6 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center text-lg">⚖️</div>
-            <div>
-              <div className="text-base font-black tracking-tight text-white">SmartSettle</div>
-              <div className="text-[10px] text-muted tracking-widest font-mono uppercase">AUTONOMOUS BILL AGENT · CELO MAINNET</div>
-            </div>
+    <main className="min-h-screen bg-[#0f1115] text-slate-200 selection:bg-accent/30">
+      {/* Background Decorative Blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-accent/10 blur-[120px] rounded-full" />
+        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-cyan-500/10 blur-[120px] rounded-full" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6 py-10 space-y-8">
+        
+        {/* Header Section */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight text-white">
+              Smart<span className="text-accent">Settle</span>
+            </h1>
+            <p className="text-slate-400 mt-1">Automated healthcare settlements on Celo.</p>
           </div>
+          <div className="flex items-center gap-3">
+             {/* Replace with your ConnectButton component */}
+             <div className="h-10 px-4 flex items-center bg-white/5 border border-white/10 rounded-xl font-medium">
+                Wallet Connected
+             </div>
+          </div>
+        </header>
 
-          <nav className="hidden md:flex gap-1">
-            {(["dashboard","bills","receipts","wallet"] as Tab[]).map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-2 text-xs font-bold tracking-widest rounded-lg transition-all ${
-                  tab === t ? "bg-accent/10 text-accent border border-accent/30" : "text-muted hover:text-white"
-                }`}>
-                {t.toUpperCase()}
-              </button>
-            ))}
-          </nav>
-
-          <ConnectButton chainStatus="icon" showBalance={false} />
-        </div>
-
-        {/* Mobile nav */}
-        <div className="md:hidden flex border-t border-border">
-          {(["dashboard","bills","receipts","wallet"] as Tab[]).map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 py-2 text-[10px] font-bold tracking-wider transition-all ${
-                tab === t ? "text-accent bg-accent/5" : "text-muted"
-              }`}>
-              {t.toUpperCase()}
-            </button>
+        {/* Top Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { label: "Total Saved", value: "$1,240.50", color: "text-accent" },
+            { label: "Processed", value: "42 Invoices", color: "text-white" },
+            { label: "Network", value: "Celo Mainnet", color: "text-cyan-400" },
+          ].map((stat, i) => (
+            <div key={i} className="p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-bold">{stat.label}</p>
+              <p className={`text-3xl font-mono mt-2 ${stat.color}`}>{stat.value}</p>
+            </div>
           ))}
         </div>
-      </header>
 
-      {/* ── Main ───────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-6xl px-4 md:px-6 py-8">
-        {!isConnected ? (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 animate-fade-up text-center">
-            <div className="text-7xl">⚖️</div>
-            <h1 className="text-4xl md:text-5xl font-black text-white">
-              Pay bills at the <span className="text-accent">lowest price.</span><br />Automatically.
-            </h1>
-            <p className="text-muted max-w-md">
-              Connect via Valora, MetaMask, or WalletConnect. The AI agent negotiates discounts and pays on Celo.
-            </p>
-            <div className="flex flex-col items-center gap-3">
-              <ConnectButton label="Connect Wallet" />
-              <p className="text-xs text-muted">Supports Valora · MetaMask · WalletConnect · Rainbow</p>
+        {/* Main Content Body */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left: Invoice List (8 cols) */}
+          <section className="lg:col-span-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-white">Recent Activity</h3>
+              <button className="text-sm text-accent hover:underline">View All</button>
             </div>
-          </div>
-        ) : (
-          <>
-            {tab === "dashboard" && (
-              <div className="space-y-6 animate-fade-up">
-                <StatsBar />
-                <BillsList onNegotiate={setNeg} />
-              </div>
-            )}
-            {tab === "bills"    && <div className="animate-fade-up"><InvoiceUpload onNegotiate={setNeg} /></div>}
-            {tab === "receipts" && <div className="animate-fade-up"><ReceiptsList /></div>}
-            {tab === "wallet"   && <div className="animate-fade-up"><WalletPanel /></div>}
-          </>
-        )}
-      </main>
+            
+            {/* Example Invoice Item Card */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden divide-y divide-white/5">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="p-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-white">Lab Services #829{item}</p>
+                      <p className="text-xs text-slate-500">Settled 2h ago</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-white">$240.00</p>
+                    <p className="text-xs text-accent">Saved $45.00</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-      {negotiating && <NegotiationModal invoice={negotiating} onClose={() => setNeg(null)} />}
-    </div>
+          {/* Right: Controls (4 cols) */}
+          <aside className="lg:col-span-4">
+            <div className="sticky top-10">
+              <WalletPanel />
+              
+              {/* Additional Utility Card */}
+              <div className="mt-6 p-6 bg-gradient-to-br from-accent/20 to-transparent border border-accent/20 rounded-2xl">
+                 <h4 className="font-bold text-white mb-2">Auto-Settle Active</h4>
+                 <p className="text-sm text-slate-300 leading-relaxed">
+                   Your agent is currently monitoring for new healthcare invoices.
+                 </p>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+      </div>
+    </main>
   );
 }
