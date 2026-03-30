@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { RainbowKitProvider, darkTheme, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http } from "wagmi";
-// ✅ Switch to viem/chains and ONLY import celo
+// ✅ Switch to viem/chains for a stable 'celo' definition
 import { celo } from "viem/chains"; 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -26,7 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Hydration barrier: prevents the "undefined" crash during Next.js pre-rendering
+  // ✅ This barrier prevents the "undefined" crash during Next.js pre-rendering
   if (!mounted) return null;
 
   return (
