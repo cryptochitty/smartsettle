@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { InvoiceUpload }     from "@/components/invoice/InvoiceUpload";
@@ -14,8 +14,21 @@ type Tab = "dashboard" | "bills" | "receipts" | "wallet";
 
 export default function Home() {
   const { isConnected } = useAccount();
-  const [tab, setTab]               = useState<Tab>("dashboard");
-  const [negotiating, setNeg]       = useState<Invoice | null>(null);
+  const [tab, setTab] = useState<Tab>("dashboard");
+  const [negotiating, setNeg] = useState<Invoice | null>(null);
+  
+  // --- HYDRATION FIX ---
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent server-side rendering of the internal UI
+  if (!mounted) {
+    return <div className="min-h-screen bg-bg" />; 
+  }
+  // ---------------------
 
   return (
     <div className="min-h-screen bg-bg">
@@ -26,7 +39,6 @@ export default function Home() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-cyan flex items-center justify-center text-lg">⚖️</div>
             <div>
               <div className="text-base font-black tracking-tight text-white">SmartSettle</div>
-              {/* ✅ UPDATED: Changed from CELO SEPOLIA to CELO MAINNET */}
               <div className="text-[10px] text-muted tracking-widest font-mono uppercase">AUTONOMOUS BILL AGENT · CELO MAINNET</div>
             </div>
           </div>
@@ -71,7 +83,6 @@ export default function Home() {
             </p>
             <div className="flex flex-col items-center gap-3">
               <ConnectButton label="Connect Wallet" />
-              {/* ✅ UPDATED: Clarified the wallet support */}
               <p className="text-xs text-muted">Supports Valora · MetaMask · WalletConnect · Rainbow</p>
             </div>
           </div>
