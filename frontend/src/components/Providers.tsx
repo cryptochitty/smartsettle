@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { RainbowKitProvider, darkTheme, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { WagmiProvider, http } from "wagmi";
+// ✅ Switch to viem/chains for reliable definitions
 import { celo } from "viem/chains"; 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -21,8 +22,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [queryClient] = useState(() => new QueryClient());
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
+  // Hydration barrier to prevent SSR errors
   if (!mounted) return null;
 
   return (
