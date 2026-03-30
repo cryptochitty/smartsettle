@@ -12,6 +12,7 @@ const STATUS_STYLE: Record<string, string> = {
   PAID:       "text-accent border-accent/30 bg-accent/10",
   CANCELLED:  "text-red-400 border-red-400/30 bg-red-400/10",
 };
+
 const CATEGORY_ICON: Record<string, string> = {
   Utility: "⚡", Internet: "📡", SaaS: "☁️", Mobile: "📱", Insurance: "🛡️",
 };
@@ -20,14 +21,29 @@ export function BillsList({ onNegotiate }: Props) {
   const { address } = useAccount();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [mounted, setMounted]   = useState(false); // Fix for date hydration
 
   useEffect(() => {
-    if (!address) return;
+    setMounted(true);
+    if (!address) {
+      setLoading(false);
+      return;
+    }
+    
     invoiceApi.getByWallet(address)
       .then((d) => setInvoices(d.invoices ?? []))
       .catch(() => setInvoices([]))
       .finally(() => setLoading(false));
   }, [address]);
+
+  // If not mounted or still loading address, show a clean loading state
+  if (!mounted || (loading && !address)) {
+    return (
+      <div className="bg-surface border border-border rounded-2xl p-6 text-center py-10 text-muted text-sm">
+        Initializing...
+      </div>
+    );
+  }
 
   return (
     <div className="bg-surface border border-border rounded-2xl p-6">
@@ -45,7 +61,7 @@ export function BillsList({ onNegotiate }: Props) {
       ) : (
         <div className="space-y-3">
           {invoices.map((inv, i) => (
-            <div key={inv.id}
+            <div key={inv.id || i}
               className="flex items-center gap-4 border border-border rounded-xl p-4 hover:border-accent/30 hover:bg-accent/5 transition-all animate-fade-up"
               style={{ animationDelay: `${i * 0.06}s` }}
             >
