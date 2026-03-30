@@ -7,7 +7,7 @@ import { celo } from "viem/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_ID_HERE";
+const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "3fcc6bba000000000000000000000000"; // Example fallback
 
 const config = getDefaultConfig({
   appName: "SmartSettle",
@@ -15,7 +15,6 @@ const config = getDefaultConfig({
   chains: [celo], 
   ssr: true, 
   transports: {
-    // ✅ Hardcoding 42220 (Celo Mainnet) prevents the 'undefined' error
     [42220]: http("https://forno.celo.org"),
   },
 });
@@ -28,13 +27,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
-
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={darkTheme({ accentColor: "#00ff87" })}>
-          {children}
+          {mounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
