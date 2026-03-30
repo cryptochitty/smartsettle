@@ -7,7 +7,7 @@ import { celo } from "viem/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "3fcc6bba000000000000000000000000"; // Example fallback
+const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "3fcc6bba000000000000000000000000";
 
 const config = getDefaultConfig({
   appName: "SmartSettle",
@@ -27,11 +27,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
+  // Strict hydration barrier
+  if (!mounted) return null;
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={darkTheme({ accentColor: "#00ff87" })}>
-          {mounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
+          {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
