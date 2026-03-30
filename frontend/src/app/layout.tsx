@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // 1. Add suppressHydrationWarning to prevent errors when extensions inject code
+    // ✅ suppressHydrationWarning is critical for RainbowKit/Wagmi
     <html lang="en" suppressHydrationWarning>
       <body className="bg-bg text-white font-sans antialiased">
         <Providers>
