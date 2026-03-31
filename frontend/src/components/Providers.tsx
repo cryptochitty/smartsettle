@@ -5,6 +5,7 @@ import {
   darkTheme,
   connectorsForWallets,
 } from "@rainbow-me/rainbowkit";
+
 import {
   metaMaskWallet,
   walletConnectWallet,
@@ -12,23 +13,34 @@ import {
   rainbowWallet,
   injectedWallet,
 } from "@rainbow-me/rainbowkit/wallets";
+
 import { createConfig, WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
 import { type Chain } from "viem";
 
-// ── Constants ────────────────────────────────────────────────────────────────
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID";
+// ── ENV ─────────────────────────────────────────────────────────────
 
-// ── Chain definitions ─────────────────────────────────────────────────────────
+const PROJECT_ID =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID";
+
+// ── CELO CHAINS ─────────────────────────────────────────────────────
 
 export const celoMainnet = {
   id: 42220,
   name: "Celo",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
   rpcUrls: {
-    default: { http: [process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org"] },
-    public:  { http: [process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org"] },
+    default: {
+      http: [
+        process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org",
+      ],
+    },
+    public: {
+      http: [
+        process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org",
+      ],
+    },
   },
   blockExplorers: {
     default: { name: "Celoscan", url: "https://celoscan.io" },
@@ -40,64 +52,64 @@ export const celoSepolia = {
   name: "Celo Sepolia",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
   rpcUrls: {
-    default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
-    public:  { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
+    default: {
+      http: ["https://forno.celo-sepolia.celo-testnet.org"],
+    },
+    public: {
+      http: ["https://forno.celo-sepolia.celo-testnet.org"],
+    },
   },
   blockExplorers: {
-    default: { name: "Blockscout", url: "https://celo-sepolia.blockscout.com" },
+    default: {
+      name: "Blockscout",
+      url: "https://celo-sepolia.blockscout.com",
+    },
   },
   testnet: true,
 } as const satisfies Chain;
 
-// ── Valora wallet (Celo-native) ───────────────────────────────────────────────
+// ── VALORA (SAFE WRAPPER) ───────────────────────────────────────────
+// We DO NOT override `id` (important)
 
 const valoraWallet = ({ projectId }: { projectId: string }) => {
-  // Get the base walletConnect connector
-  const baseWallet = walletConnectWallet({ projectId });
+  const base = walletConnectWallet({ projectId });
 
-  // Use Object.assign to bypass the "duplicate key" check in Next.js 16
-  // This is a functional merge, not a literal one, so the compiler won't crash.
-  const customValora = Object.assign({}, baseWallet, {
-    id: "valora",
+  return {
+    ...base,
     name: "Valora",
-    shortName: "Valora",
     iconUrl: "https://valoraapp.com/favicon.ico",
     iconBackground: "#FCFF52",
-    downloadUrls: {
-      ios:      "https://apps.apple.com/app/valora-celo-wallet/id1520414263",
-      android: "https://play.google.com/store/apps/details?id=co.clabs.valora",
-      qrCode:  "https://valoraapp.com",
-    },
-    mobile: {
-      getUri: (uri: string) => `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
-    },
-    qrCode: { getUri: (uri: string) => uri },
-  });
 
-  return customValora as any;
+    // Optional deep link (mobile users)
+    mobile: {
+      getUri: (uri: string) =>
+        `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
+    },
+  };
 };
 
-// ── Wallet config ─────────────────────────────────────────────────────────────
+// ── CONNECTORS ─────────────────────────────────────────────────────
 
-const connectors = connectorsForWallets(
-  [
-    { 
-      groupName: "Celo Native",  
-      wallets: [valoraWallet] 
-    },
-    { 
-      groupName: "Popular",      
-      wallets: [
-        metaMaskWallet, 
-        walletConnectWallet, 
-        coinbaseWallet, 
-        rainbowWallet, 
-        injectedWallet
-      ] 
-    },
-  ],
-  { appName: "SmartSettle", projectId: PROJECT_ID }
-);
+const connectors = connectorsForWallets([
+  {
+    groupName: "Celo Native",
+    wallets: [
+      valoraWallet({ projectId: PROJECT_ID }), // ✅ FIXED
+    ],
+  },
+  {
+    groupName: "Popular",
+    wallets: [
+      metaMaskWallet({ projectId: PROJECT_ID }),
+      walletConnectWallet({ projectId: PROJECT_ID }),
+      coinbaseWallet({ appName: "SmartSettle" }),
+      rainbowWallet({ projectId: PROJECT_ID }),
+      injectedWallet({ projectId: PROJECT_ID }),
+    ],
+  },
+]);
+
+// ── WAGMI CONFIG ───────────────────────────────────────────────────
 
 const config = createConfig({
   connectors,
@@ -109,7 +121,11 @@ const config = createConfig({
   ssr: true,
 });
 
+// ── QUERY CLIENT ───────────────────────────────────────────────────
+
 const queryClient = new QueryClient();
+
+// ── PROVIDERS ─────────────────────────────────────────────────────
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -117,11 +133,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={darkTheme({
-            accentColor:           "#00e5a0",
-            accentColorForeground:  "#050810",
-            borderRadius:           "medium",
-            fontStack:              "system",
-            overlayBlur:            "small",
+            accentColor: "#00e5a0",
+            accentColorForeground: "#050810",
+            borderRadius: "medium",
           })}
           modalSize="compact"
         >
