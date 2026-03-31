@@ -1,54 +1,62 @@
 "use client";
-import { useEffect, useState } from "react"; // Added for hydration
 import { useAccount } from "wagmi";
 import { useCUSDBalance, useAgentBalance, useTotalStats } from "@/hooks/useSmartSettle";
 import { formatUnits } from "viem";
 
 export function StatsBar() {
-  const { chainId, isConnected } = useAccount();
-  const [mounted, setMounted] = useState(false);
-
-  // Safely call hooks - but we won't process their data until mounted
+  const { chainId } = useAccount();
   const { data: cusdBal }  = useCUSDBalance();
   const { data: agentBal } = useAgentBalance();
-  const { totalSaved = "0", totalPayments = "0" } = useTotalStats(chainId);
+  const { totalSaved, totalPayments } = useTotalStats(chainId);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // 1. If not mounted (Server Side), render a skeleton to avoid the useMemo crash
-  if (!mounted) {
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-surface border border-border rounded-2xl p-5 animate-pulse h-24" />
-        ))}
-      </div>
-    );
-  }
-
-  // 2. Safely parse values with fallbacks to prevent "toFixed of undefined"
-  const safeCusd = cusdBal ? `$${parseFloat(formatUnits(cusdBal, 18)).toFixed(2)}` : "$0.00";
-  const safeAgent = agentBal ? `$${parseFloat(formatUnits(agentBal, 18)).toFixed(2)}` : "$0.00";
-  const safeSaved = totalSaved ? `$${parseFloat(totalSaved).toFixed(2)}` : "$0.00";
+  const fmt = (v: bigint | undefined) =>
+    v ? `$${parseFloat(formatUnits(v, 18)).toFixed(2)}` : "$0.00";
 
   const stats = [
-    { label: "Wallet cUSD",   value: isConnected ? safeCusd : "$0.00", color: "text-accent" },
-    { label: "Agent Balance", value: isConnected ? safeAgent : "$0.00", color: "text-cyan"   },
-    { label: "Total Saved",   value: isConnected ? safeSaved : "$0.00", color: "text-gold"   },
-    { label: "Bills Settled", value: isConnected ? totalPayments : "0", color: "text-purple" },
+    {
+      tag:   "WALLET BALANCE",
+      value: fmt(cusdBal),
+      sub:   "cUSD in your wallet",
+      color: "text-cyan",
+      icon:  "◎",
+    },
+    {
+      tag:   "AGENT BALANCE",
+      value: fmt(agentBal),
+      sub:   "Available to agent",
+      color: "text-accent",
+      icon:  "⚡",
+    },
+    {
+      tag:   "TOTAL SAVED",
+      value: `$${parseFloat(totalSaved).toFixed(2)}`,
+      sub:   "Across all bills",
+      color: "text-gold",
+      icon:  "↓",
+    },
+    {
+      tag:   "BILLS SETTLED",
+      value: totalPayments,
+      sub:   "On-chain payments",
+      color: "text-purple",
+      icon:  "✓",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {stats.map((s, i) => (
-        <div key={i} 
-          className="bg-surface border border-border rounded-2xl p-5 animate-fade-up" 
-          style={{ animationDelay: `${i * 0.07}s` }}
+        <div
+          key={i}
+          className="card p-5 animate-fade-up"
+          style={{ animationDelay: `${i * 0.06}s` }}
         >
-          <p className="text-[10px] text-muted tracking-widest mb-2">{s.label.toUpperCase()}</p>
-          <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[9px] text-muted tracking-[0.12em] font-mono">{s.tag}</p>
+            <span className={`text-sm ${s.color} opacity-60`}>{s.icon}</span>
+          </div>
+          <p className={`text-2xl font-bold ${s.color} tabular-nums`}>{s.value}</p>
+          <p className="text-[11px] text-muted mt-1">{s.sub}</p>
         </div>
       ))}
     </div>
