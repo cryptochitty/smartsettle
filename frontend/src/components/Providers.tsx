@@ -52,13 +52,15 @@ export const celoSepolia = {
 // ── Valora wallet (Celo-native) ───────────────────────────────────────────────
 
 const valoraWallet = ({ projectId }: { projectId: string }) => {
-  const connector = walletConnectWallet({ projectId });
-  
-  // We use "as any" to bypass the Next.js 16 / TS 5.x strict duplicate key check
-  return {
-    ...connector,
+  // Get the base walletConnect connector
+  const baseWallet = walletConnectWallet({ projectId });
+
+  // Use Object.assign to bypass the "duplicate key" check in Next.js 16
+  // This is a functional merge, not a literal one, so the compiler won't crash.
+  const customValora = Object.assign({}, baseWallet, {
     id: "valora",
     name: "Valora",
+    shortName: "Valora",
     iconUrl: "https://valoraapp.com/favicon.ico",
     iconBackground: "#FCFF52",
     downloadUrls: {
@@ -70,7 +72,9 @@ const valoraWallet = ({ projectId }: { projectId: string }) => {
       getUri: (uri: string) => `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
     },
     qrCode: { getUri: (uri: string) => uri },
-  } as any; 
+  });
+
+  return customValora as any;
 };
 
 // ── Wallet config ─────────────────────────────────────────────────────────────
