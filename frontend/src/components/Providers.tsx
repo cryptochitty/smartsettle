@@ -47,7 +47,7 @@ export const celoMainnet = {
   },
 } as const satisfies Chain;
 
-// ── CELO SEPOLIA (TESTNET) ─────────────────────────────────────────
+// ── CELO SEPOLIA ───────────────────────────────────────────────────
 
 export const celoSepolia = {
   id: 11142220,
@@ -70,38 +70,14 @@ export const celoSepolia = {
   testnet: true,
 } as const satisfies Chain;
 
-// ── VALORA WALLET (SAFE WRAPPER) ───────────────────────────────────
-// IMPORTANT: we DO NOT set `id` manually
-
-const valoraWallet = ({ projectId }: { projectId: string }) => {
-  const base = walletConnectWallet({ projectId });
-
-  return {
-    ...base,
-    name: "Valora",
-    iconUrl: "https://valoraapp.com/favicon.ico",
-    iconBackground: "#FCFF52",
-    mobile: {
-      getUri: (uri: string) =>
-        `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
-    },
-  };
-};
-
-// ── CONNECTORS ─────────────────────────────────────────────────────
+// ── CONNECTORS (NO VALORA CUSTOM WALLET) ───────────────────────────
 
 const connectors = connectorsForWallets([
-  {
-    groupName: "Celo Native",
-    wallets: [
-      valoraWallet({ projectId: PROJECT_ID }), // ✅ correct usage
-    ],
-  },
   {
     groupName: "Popular",
     wallets: [
       metaMaskWallet({ projectId: PROJECT_ID }),
-      walletConnectWallet({ projectId: PROJECT_ID }),
+      walletConnectWallet({ projectId: PROJECT_ID }), // ✅ supports Valora automatically
       coinbaseWallet({ appName: "SmartSettle" }),
       rainbowWallet({ projectId: PROJECT_ID }),
       injectedWallet({ projectId: PROJECT_ID }),
