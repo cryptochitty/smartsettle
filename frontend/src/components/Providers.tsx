@@ -24,7 +24,7 @@ import { type Chain } from "viem";
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID";
 
-// ── CELO CHAINS ─────────────────────────────────────────────────────
+// ── CELO MAINNET ───────────────────────────────────────────────────
 
 export const celoMainnet = {
   id: 42220,
@@ -47,6 +47,8 @@ export const celoMainnet = {
   },
 } as const satisfies Chain;
 
+// ── CELO SEPOLIA (TESTNET) ─────────────────────────────────────────
+
 export const celoSepolia = {
   id: 11142220,
   name: "Celo Sepolia",
@@ -68,8 +70,8 @@ export const celoSepolia = {
   testnet: true,
 } as const satisfies Chain;
 
-// ── VALORA (SAFE WRAPPER) ───────────────────────────────────────────
-// We DO NOT override `id` (important)
+// ── VALORA WALLET (SAFE WRAPPER) ───────────────────────────────────
+// IMPORTANT: we DO NOT set `id` manually
 
 const valoraWallet = ({ projectId }: { projectId: string }) => {
   const base = walletConnectWallet({ projectId });
@@ -79,8 +81,6 @@ const valoraWallet = ({ projectId }: { projectId: string }) => {
     name: "Valora",
     iconUrl: "https://valoraapp.com/favicon.ico",
     iconBackground: "#FCFF52",
-
-    // Optional deep link (mobile users)
     mobile: {
       getUri: (uri: string) =>
         `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
@@ -94,7 +94,7 @@ const connectors = connectorsForWallets([
   {
     groupName: "Celo Native",
     wallets: [
-      valoraWallet({ projectId: PROJECT_ID }), // ✅ FIXED
+      valoraWallet({ projectId: PROJECT_ID }), // ✅ correct usage
     ],
   },
   {
@@ -125,7 +125,7 @@ const config = createConfig({
 
 const queryClient = new QueryClient();
 
-// ── PROVIDERS ─────────────────────────────────────────────────────
+// ── PROVIDER COMPONENT ─────────────────────────────────────────────
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
