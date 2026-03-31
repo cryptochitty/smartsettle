@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import {
   RainbowKitProvider,
   darkTheme,
@@ -14,45 +16,59 @@ import {
   injectedWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 
-import { createConfig, WagmiProvider, http } from "wagmi";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
+
+import { WagmiProvider, createConfig, http } from "wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type Chain } from "viem";
 
-// ── ENV ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// ENV
+// ─────────────────────────────────────────────
 
 const PROJECT_ID =
-  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID";
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo";
 
-// ── CELO MAINNET ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// CELO MAINNET
+// ─────────────────────────────────────────────
 
 export const celoMainnet = {
   id: 42220,
   name: "Celo",
-  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  nativeCurrency: {
+    name: "CELO",
+    symbol: "CELO",
+    decimals: 18,
+  },
   rpcUrls: {
     default: {
-      http: [
-        process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org",
-      ],
+      http: ["https://forno.celo.org"],
     },
     public: {
-      http: [
-        process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org",
-      ],
+      http: ["https://forno.celo.org"],
     },
   },
   blockExplorers: {
-    default: { name: "Celoscan", url: "https://celoscan.io" },
+    default: {
+      name: "Celoscan",
+      url: "https://celoscan.io",
+    },
   },
 } as const satisfies Chain;
 
-// ── CELO SEPOLIA ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// CELO SEPOLIA (TESTNET)
+// ─────────────────────────────────────────────
 
 export const celoSepolia = {
   id: 11142220,
   name: "Celo Sepolia",
-  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  nativeCurrency: {
+    name: "CELO",
+    symbol: "CELO",
+    decimals: 18,
+  },
   rpcUrls: {
     default: {
       http: ["https://forno.celo-sepolia.celo-testnet.org"],
@@ -70,7 +86,9 @@ export const celoSepolia = {
   testnet: true,
 } as const satisfies Chain;
 
-// ── CONNECTORS (UPDATED API FIX) ───────────────────────────────────
+// ─────────────────────────────────────────────
+// WALLET CONNECTORS (FIXED)
+// ─────────────────────────────────────────────
 
 const connectors = connectorsForWallets(
   [
@@ -91,7 +109,9 @@ const connectors = connectorsForWallets(
   }
 );
 
-// ── WAGMI CONFIG ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// WAGMI CONFIG
+// ─────────────────────────────────────────────
 
 const config = createConfig({
   connectors,
@@ -103,11 +123,15 @@ const config = createConfig({
   ssr: true,
 });
 
-// ── QUERY CLIENT ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// REACT QUERY CLIENT
+// ─────────────────────────────────────────────
 
 const queryClient = new QueryClient();
 
-// ── PROVIDERS ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// PROVIDER WRAPPER
+// ─────────────────────────────────────────────
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
