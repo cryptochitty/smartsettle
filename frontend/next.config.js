@@ -1,37 +1,28 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
-  
-  // 1. ADD THIS: This fixes the "e is not a function" for ESM libraries
-  transpilePackages: [
-    "axios", 
-    "@rainbow-me/rainbowkit", 
-    "wagmi", 
-    "viem", 
-    "@tanstack/react-query"
-  ],
 
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options",           value: "DENY" },
+          { key: "X-Content-Type-Options",     value: "nosniff" },
+          { key: "Referrer-Policy",            value: "origin-when-cross-origin" },
+          { key: "Permissions-Policy",         value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
   },
-  webpack: (config) => {
-    config.resolve.fallback = {
-      fs: false, net: false, tls: false,
-      crypto: false, stream: false,
-      http: false, https: false, os: false,
-    };
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "@react-native-async-storage/async-storage": false,
-      "pino-pretty": false,
-      "lokijs": false,
-      "encoding": false,
-      "bufferutil": false,
-      "utf-8-validate": false,
-    };
-    return config;
+
+  // Allow cross-origin for RainbowKit assets
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "*.walletconnect.com" },
+      { protocol: "https", hostname: "valoraapp.com" },
+    ],
   },
 };
 
