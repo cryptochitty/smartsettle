@@ -78,7 +78,7 @@ const connectors = connectorsForWallets(
       groupName: "Popular",
       wallets: [
         metaMaskWallet({ projectId: PROJECT_ID }),
-        walletConnectWallet({ projectId: PROJECT_ID }), // ✅ supports Valora
+        walletConnectWallet({ projectId: PROJECT_ID }),
         coinbaseWallet({ appName: "SmartSettle" }),
         rainbowWallet({ projectId: PROJECT_ID }),
         injectedWallet({ projectId: PROJECT_ID }),
