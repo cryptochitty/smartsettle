@@ -1,9 +1,19 @@
+typescript
 import axios from "axios";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
-  timeout: 60000,
+  timeout: 90000,
+  withCredentials: true,
 });
+
+api.interceptors.response.use(
+  (r) => r,
+  (err) => {
+    const msg = err?.response?.data?.error || err?.message || "Request failed";
+    return Promise.reject(new Error(msg));
+  }
+);
 
 export const invoiceApi = {
   upload: async (file: File) => {
@@ -28,8 +38,11 @@ export const invoiceApi = {
 };
 
 export const negotiationApi = {
-  streamUrl: (invoiceId: string) =>
-    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/negotiate/${invoiceId}/stream`,
+  streamUrl: (invoiceId: string, wallet?: string) => {
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const qs   = wallet ? `?wallet=${wallet}` : "";
+    return `${base}/api/negotiate/${invoiceId}/stream${qs}`;
+  },
   execute: async (invoiceId: string, walletAddress: string) => {
     const { data } = await api.post(`/api/negotiate/${invoiceId}/execute`, { walletAddress });
     return data;
