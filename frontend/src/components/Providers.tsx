@@ -50,24 +50,30 @@ export const celoSepolia = {
 } as const satisfies Chain;
 
 // ── Valora wallet (Celo-native) ───────────────────────────────────────────────
-// We call the walletConnectWallet function to get the correct connector logic
-const valoraWallet = ({ projectId }: { projectId: string }) => ({
-  id: "valora",
-  name: "Valora",
-  iconUrl: "https://valoraapp.com/favicon.ico",
-  iconBackground: "#FCFF52",
-  downloadUrls: {
-    ios:      "https://apps.apple.com/app/valora-celo-wallet/id1520414263",
-    android: "https://play.google.com/store/apps/details?id=co.clabs.valora",
-    qrCode:  "https://valoraapp.com",
-  },
-  mobile: {
-    getUri: (uri: string) => `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
-  },
-  qrCode: { getUri: (uri: string) => uri },
-  // Fix: Spread the existing walletConnectWallet connector logic
-  ...walletConnectWallet({ projectId }),
-});
+
+const valoraWallet = ({ projectId }: { projectId: string }) => {
+  // We call the base wallet logic first
+  const connector = walletConnectWallet({ projectId });
+  
+  return {
+    // 1. Spread first so default values are provided
+    ...connector,
+    // 2. Overwrite with specific Valora details
+    id: "valora",
+    name: "Valora",
+    iconUrl: "https://valoraapp.com/favicon.ico",
+    iconBackground: "#FCFF52",
+    downloadUrls: {
+      ios:      "https://apps.apple.com/app/valora-celo-wallet/id1520414263",
+      android: "https://play.google.com/store/apps/details?id=co.clabs.valora",
+      qrCode:  "https://valoraapp.com",
+    },
+    mobile: {
+      getUri: (uri: string) => `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
+    },
+    qrCode: { getUri: (uri: string) => uri },
+  };
+};
 
 // ── Wallet config ─────────────────────────────────────────────────────────────
 
@@ -109,7 +115,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
           theme={darkTheme({
-            accentColor:            "#00e5a0",
+            accentColor:           "#00e5a0",
             accentColorForeground:  "#050810",
             borderRadius:           "medium",
             fontStack:              "system",
