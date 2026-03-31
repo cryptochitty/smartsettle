@@ -52,12 +52,18 @@ export const celoSepolia = {
 // ── Valora wallet (Celo-native) ───────────────────────────────────────────────
 
 const valoraWallet = ({ projectId }: { projectId: string }) => {
-  // First, get the base connector logic from WalletConnect
-  const connector = walletConnectWallet({ projectId });
+  // 1. Get the base walletConnect connector
+  const baseWallet = walletConnectWallet({ projectId });
   
+  // 2. Destructure to extract 'id' as a throwaway variable (_) 
+  // and keep everything else in 'baseProps'. This prevents the "duplicate id" error.
+  const { id: _, ...baseProps } = baseWallet;
+
   return {
-    ...connector,
-    id: "valora", // This safely overwrites the base connector ID
+    // 3. Spread the base props which no longer contain an 'id'
+    ...baseProps,
+    // 4. Now define your ID uniquely
+    id: "valora",
     name: "Valora",
     iconUrl: "https://valoraapp.com/favicon.ico",
     iconBackground: "#FCFF52",
