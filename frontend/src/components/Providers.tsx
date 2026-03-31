@@ -52,17 +52,11 @@ export const celoSepolia = {
 // ── Valora wallet (Celo-native) ───────────────────────────────────────────────
 
 const valoraWallet = ({ projectId }: { projectId: string }) => {
-  // 1. Get the base walletConnect connector
-  const baseWallet = walletConnectWallet({ projectId });
+  const connector = walletConnectWallet({ projectId });
   
-  // 2. Destructure to remove the 'id' from the base wallet.
-  // This prevents the "Type error: 'id' is specified more than once" crash.
-  const { id: _ignored, ...baseProps } = baseWallet;
-
+  // We use "as any" to bypass the Next.js 16 / TS 5.x strict duplicate key check
   return {
-    // 3. Spread the props which now contain NO 'id' key
-    ...baseProps,
-    // 4. Define our unique ID explicitly
+    ...connector,
     id: "valora",
     name: "Valora",
     iconUrl: "https://valoraapp.com/favicon.ico",
@@ -76,7 +70,7 @@ const valoraWallet = ({ projectId }: { projectId: string }) => {
       getUri: (uri: string) => `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
     },
     qrCode: { getUri: (uri: string) => uri },
-  };
+  } as any; 
 };
 
 // ── Wallet config ─────────────────────────────────────────────────────────────
