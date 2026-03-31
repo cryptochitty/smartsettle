@@ -55,14 +55,14 @@ const valoraWallet = ({ projectId }: { projectId: string }) => {
   // 1. Get the base walletConnect connector
   const baseWallet = walletConnectWallet({ projectId });
   
-  // 2. Destructure to extract 'id' as a throwaway variable (_) 
-  // and keep everything else in 'baseProps'. This prevents the "duplicate id" error.
-  const { id: _, ...baseProps } = baseWallet;
+  // 2. Destructure to remove the 'id' from the base wallet.
+  // This prevents the "Type error: 'id' is specified more than once" crash.
+  const { id: _ignored, ...baseProps } = baseWallet;
 
   return {
-    // 3. Spread the base props which no longer contain an 'id'
+    // 3. Spread the props which now contain NO 'id' key
     ...baseProps,
-    // 4. Now define your ID uniquely
+    // 4. Define our unique ID explicitly
     id: "valora",
     name: "Valora",
     iconUrl: "https://valoraapp.com/favicon.ico",
