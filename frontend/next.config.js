@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // Security headers
+  // 1. Security headers
   async headers() {
     return [
       {
@@ -17,7 +17,7 @@ const nextConfig = {
     ];
   },
 
-  // Allow cross-origin for wallet assets
+  // 2. Allow cross-origin for wallet assets
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.walletconnect.com" },
@@ -25,15 +25,19 @@ const nextConfig = {
     ],
   },
 
-  // ── Webpack Fix for Web3 Dependencies ──────────────────────────────────────
+  // 3. Webpack Fix for Web3 Dependencies
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Fixes npm packages that depend on `fs` / `net` / `tls` etc.
+      // Fixes npm packages that depend on Node.js internals
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
+        // The fix for your specific "Module not found" errors:
+        "@react-native-async-storage/async-storage": false,
+        "pino-pretty": false,
+        // Other standard Web3 polyfills
         crypto: require.resolve("crypto-browserify"),
         stream: require.resolve("stream-browserify"),
         url: require.resolve("url"),
@@ -45,8 +49,8 @@ const nextConfig = {
         path: require.resolve("path-browserify"),
       };
     }
-    
-    // Ignore optional dependencies that cause build errors in MetaMask SDK
+
+    // Ignore optional dependencies that cause build errors in MetaMask SDK/Pino
     config.externals.push({
       "pino-pretty": "pino-pretty",
       "lokijs": "lokijs",
