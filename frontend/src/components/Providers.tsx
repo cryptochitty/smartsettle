@@ -70,20 +70,26 @@ export const celoSepolia = {
   testnet: true,
 } as const satisfies Chain;
 
-// ── CONNECTORS (NO VALORA CUSTOM WALLET) ───────────────────────────
+// ── CONNECTORS (UPDATED API FIX) ───────────────────────────────────
 
-const connectors = connectorsForWallets([
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: "Popular",
+      wallets: [
+        metaMaskWallet({ projectId: PROJECT_ID }),
+        walletConnectWallet({ projectId: PROJECT_ID }), // ✅ supports Valora
+        coinbaseWallet({ appName: "SmartSettle" }),
+        rainbowWallet({ projectId: PROJECT_ID }),
+        injectedWallet({ projectId: PROJECT_ID }),
+      ],
+    },
+  ],
   {
-    groupName: "Popular",
-    wallets: [
-      metaMaskWallet({ projectId: PROJECT_ID }),
-      walletConnectWallet({ projectId: PROJECT_ID }), // ✅ supports Valora automatically
-      coinbaseWallet({ appName: "SmartSettle" }),
-      rainbowWallet({ projectId: PROJECT_ID }),
-      injectedWallet({ projectId: PROJECT_ID }),
-    ],
-  },
-]);
+    appName: "SmartSettle",
+    projectId: PROJECT_ID,
+  }
+);
 
 // ── WAGMI CONFIG ───────────────────────────────────────────────────
 
@@ -101,7 +107,7 @@ const config = createConfig({
 
 const queryClient = new QueryClient();
 
-// ── PROVIDER COMPONENT ─────────────────────────────────────────────
+// ── PROVIDERS ─────────────────────────────────────────────────────
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
