@@ -52,14 +52,12 @@ export const celoSepolia = {
 // ── Valora wallet (Celo-native) ───────────────────────────────────────────────
 
 const valoraWallet = ({ projectId }: { projectId: string }) => {
-  // We call the base wallet logic first
+  // First, get the base connector logic from WalletConnect
   const connector = walletConnectWallet({ projectId });
   
   return {
-    // 1. Spread first so default values are provided
     ...connector,
-    // 2. Overwrite with specific Valora details
-    id: "valora",
+    id: "valora", // This safely overwrites the base connector ID
     name: "Valora",
     iconUrl: "https://valoraapp.com/favicon.ico",
     iconBackground: "#FCFF52",
