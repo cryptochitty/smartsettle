@@ -15,11 +15,14 @@ import {
 import { createConfig, WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
-import type { Chain } from "wagmi/chains";
+import { type Chain } from "viem";
+
+// ── Constants ────────────────────────────────────────────────────────────────
+const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "YOUR_PROJECT_ID";
 
 // ── Chain definitions ─────────────────────────────────────────────────────────
 
-export const celoMainnet: Chain = {
+export const celoMainnet = {
   id: 42220,
   name: "Celo",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
@@ -30,9 +33,9 @@ export const celoMainnet: Chain = {
   blockExplorers: {
     default: { name: "Celoscan", url: "https://celoscan.io" },
   },
-};
+} as const satisfies Chain;
 
-export const celoSepolia: Chain = {
+export const celoSepolia = {
   id: 11142220,
   name: "Celo Sepolia",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
@@ -44,16 +47,17 @@ export const celoSepolia: Chain = {
     default: { name: "Blockscout", url: "https://celo-sepolia.blockscout.com" },
   },
   testnet: true,
-};
+} as const satisfies Chain;
 
 // ── Valora wallet (Celo-native) ───────────────────────────────────────────────
-const valoraWallet = {
+// We call the walletConnectWallet function to get the correct connector logic
+const valoraWallet = ({ projectId }: { projectId: string }) => ({
   id: "valora",
   name: "Valora",
   iconUrl: "https://valoraapp.com/favicon.ico",
   iconBackground: "#FCFF52",
   downloadUrls: {
-    ios:     "https://apps.apple.com/app/valora-celo-wallet/id1520414263",
+    ios:      "https://apps.apple.com/app/valora-celo-wallet/id1520414263",
     android: "https://play.google.com/store/apps/details?id=co.clabs.valora",
     qrCode:  "https://valoraapp.com",
   },
@@ -61,16 +65,28 @@ const valoraWallet = {
     getUri: (uri: string) => `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
   },
   qrCode: { getUri: (uri: string) => uri },
-  createConnector: walletConnectWallet.createConnector,
-};
+  // Fix: Spread the existing walletConnectWallet connector logic
+  ...walletConnectWallet({ projectId }),
+});
 
 // ── Wallet config ─────────────────────────────────────────────────────────────
-const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 const connectors = connectorsForWallets(
   [
-    { groupName: "Celo Native",  wallets: [valoraWallet] },
-    { groupName: "Popular",      wallets: [metaMaskWallet, walletConnectWallet, coinbaseWallet, rainbowWallet, injectedWallet] },
+    { 
+      groupName: "Celo Native",  
+      wallets: [valoraWallet] 
+    },
+    { 
+      groupName: "Popular",      
+      wallets: [
+        metaMaskWallet, 
+        walletConnectWallet, 
+        coinbaseWallet, 
+        rainbowWallet, 
+        injectedWallet
+      ] 
+    },
   ],
   { appName: "SmartSettle", projectId: PROJECT_ID }
 );
@@ -79,8 +95,8 @@ const config = createConfig({
   connectors,
   chains: [celoMainnet, celoSepolia],
   transports: {
-    [celoMainnet.id]:  http(),
-    [celoSepolia.id]:  http(),
+    [celoMainnet.id]: http(),
+    [celoSepolia.id]: http(),
   },
   ssr: true,
 });
@@ -100,7 +116,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
             overlayBlur:            "small",
           })}
           modalSize="compact"
-          initialChain={celoMainnet}
         >
           {children}
         </RainbowKitProvider>
