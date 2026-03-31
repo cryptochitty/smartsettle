@@ -1,39 +1,107 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from "react";
-import { RainbowKitProvider, darkTheme, getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { WagmiProvider, http } from "wagmi";
-// ✅ We are using viem/chains now. Notice celoSepolia is REMOVED.
-import { celo } from "viem/chains"; 
+import {
+  RainbowKitProvider,
+  darkTheme,
+  connectorsForWallets,
+} from "@rainbow-me/rainbowkit";
+import {
+  metaMaskWallet,
+  walletConnectWallet,
+  coinbaseWallet,
+  rainbowWallet,
+  injectedWallet,
+} from "@rainbow-me/rainbowkit/wallets";
+import { createConfig, WagmiProvider, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
+import type { Chain } from "wagmi/chains";
 
-const config = getDefaultConfig({
-  appName: "SmartSettle",
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "3fcc6bba000000000000000000000000",
-  chains: [celo], 
-  ssr: true, 
-  transports: {
-    // celo.id is 42220
-    [celo.id]: http("https://forno.celo.org"),
+// ── Chain definitions ─────────────────────────────────────────────────────────
+
+export const celoMainnet: Chain = {
+  id: 42220,
+  name: "Celo",
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: {
+    default: { http: [process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org"] },
+    public:  { http: [process.env.NEXT_PUBLIC_CELO_RPC_URL || "https://forno.celo.org"] },
   },
+  blockExplorers: {
+    default: { name: "Celoscan", url: "https://celoscan.io" },
+  },
+};
+
+export const celoSepolia: Chain = {
+  id: 11142220,
+  name: "Celo Sepolia",
+  nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
+    public:  { http: ["https://forno.celo-sepolia.celo-testnet.org"] },
+  },
+  blockExplorers: {
+    default: { name: "Blockscout", url: "https://celo-sepolia.blockscout.com" },
+  },
+  testnet: true,
+};
+
+// ── Valora wallet (Celo-native) ───────────────────────────────────────────────
+const valoraWallet = {
+  id: "valora",
+  name: "Valora",
+  iconUrl: "https://valoraapp.com/favicon.ico",
+  iconBackground: "#FCFF52",
+  downloadUrls: {
+    ios:     "https://apps.apple.com/app/valora-celo-wallet/id1520414263",
+    android: "https://play.google.com/store/apps/details?id=co.clabs.valora",
+    qrCode:  "https://valoraapp.com",
+  },
+  mobile: {
+    getUri: (uri: string) => `celo://wallet/wc?uri=${encodeURIComponent(uri)}`,
+  },
+  qrCode: { getUri: (uri: string) => uri },
+  createConnector: walletConnectWallet.createConnector,
+};
+
+// ── Wallet config ─────────────────────────────────────────────────────────────
+const PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+
+const connectors = connectorsForWallets(
+  [
+    { groupName: "Celo Native",  wallets: [valoraWallet] },
+    { groupName: "Popular",      wallets: [metaMaskWallet, walletConnectWallet, coinbaseWallet, rainbowWallet, injectedWallet] },
+  ],
+  { appName: "SmartSettle", projectId: PROJECT_ID }
+);
+
+const config = createConfig({
+  connectors,
+  chains: [celoMainnet, celoSepolia],
+  transports: {
+    [celoMainnet.id]:  http(),
+    [celoSepolia.id]:  http(),
+  },
+  ssr: true,
 });
 
+const queryClient = new QueryClient();
+
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const [queryClient] = useState(() => new QueryClient());
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // ✅ Hydration barrier: stops the build from executing wallet logic on the server
-  if (!mounted) return null;
-
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={darkTheme({ accentColor: "#00ff87" })}>
+        <RainbowKitProvider
+          theme={darkTheme({
+            accentColor:            "#00e5a0",
+            accentColorForeground:  "#050810",
+            borderRadius:           "medium",
+            fontStack:              "system",
+            overlayBlur:            "small",
+          })}
+          modalSize="compact"
+          initialChain={celoMainnet}
+        >
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>
