@@ -1,4 +1,3 @@
-typescript
 export const ADDRESSES = {
   celo: {
     SMART_SETTLE:  (process.env.NEXT_PUBLIC_SMART_SETTLE_ADDRESS  || "0x") as `0x${string}`,

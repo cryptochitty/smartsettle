@@ -22,17 +22,23 @@ import { WagmiProvider, createConfig, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type Chain } from "viem";
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────
 // ENV
 // ─────────────────────────────────────────────
 
+=======
+>>>>>>> ae27562 (fix wallet provider build)
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo";
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────
 // CELO MAINNET
 // ─────────────────────────────────────────────
 
+=======
+>>>>>>> ae27562 (fix wallet provider build)
 export const celoMainnet = {
   id: 42220,
   name: "Celo",
@@ -57,10 +63,13 @@ export const celoMainnet = {
   },
 } as const satisfies Chain;
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────
 // CELO SEPOLIA (TESTNET)
 // ─────────────────────────────────────────────
 
+=======
+>>>>>>> ae27562 (fix wallet provider build)
 export const celoSepolia = {
   id: 11142220,
   name: "Celo Sepolia",
@@ -86,20 +95,31 @@ export const celoSepolia = {
   testnet: true,
 } as const satisfies Chain;
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────
 // WALLET CONNECTORS (FIXED)
 // ─────────────────────────────────────────────
 
+=======
+>>>>>>> ae27562 (fix wallet provider build)
 const connectors = connectorsForWallets(
   [
     {
       groupName: "Popular",
       wallets: [
+<<<<<<< HEAD
         metaMaskWallet({ projectId: PROJECT_ID }),
         walletConnectWallet({ projectId: PROJECT_ID }),
         coinbaseWallet({ appName: "SmartSettle" }),
         rainbowWallet({ projectId: PROJECT_ID }),
         injectedWallet({ projectId: PROJECT_ID }),
+=======
+        metaMaskWallet,
+        walletConnectWallet,
+        coinbaseWallet,
+        rainbowWallet,
+        injectedWallet,
+>>>>>>> ae27562 (fix wallet provider build)
       ],
     },
   ],
@@ -108,10 +128,13 @@ const connectors = connectorsForWallets(
     projectId: PROJECT_ID,
   }
 );
+<<<<<<< HEAD
 
 // ─────────────────────────────────────────────
 // WAGMI CONFIG
 // ─────────────────────────────────────────────
+=======
+>>>>>>> ae27562 (fix wallet provider build)
 
 const config = createConfig({
   connectors,
@@ -123,6 +146,7 @@ const config = createConfig({
   ssr: true,
 });
 
+<<<<<<< HEAD
 // ─────────────────────────────────────────────
 // REACT QUERY CLIENT
 // ─────────────────────────────────────────────
@@ -133,6 +157,10 @@ const queryClient = new QueryClient();
 // PROVIDER WRAPPER
 // ─────────────────────────────────────────────
 
+=======
+const queryClient = new QueryClient();
+
+>>>>>>> ae27562 (fix wallet provider build)
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
