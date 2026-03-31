@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "react-hot-toast";
 
+// SEO & Metadata for SmartSettle
 export const metadata: Metadata = {
   title: "SmartSettle — Autonomous Bill Agent on Celo",
   description: "AI negotiates your bills and pays the lowest possible amount on Celo mainnet. Autonomous, secure, on-chain.",
@@ -17,8 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="bg-bg text-white font-sans antialiased">
+        {/* Decorative background glows */}
         <div className="glow-tl" />
         <div className="glow-br" />
+        
         <Providers>
           {children}
           <Toaster
